@@ -1,9 +1,9 @@
 use std::env;
 
-use actix_web::{ http::header, HttpRequest, HttpResponse };
-use serde::{ Deserialize, Serialize };
-use jsonwebtoken::{ decode, DecodingKey, Validation };
+use actix_web::{HttpRequest, HttpResponse, http::header};
+use jsonwebtoken::{DecodingKey, Validation, decode};
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 
 use crate::utils::api_response::ApiResponse;
 
@@ -18,16 +18,24 @@ pub static JWT_INTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InternalClaims {
-    internal: bool,
-    exp: i64,
+    pub internal: bool,
+    pub exp: i64,
 }
+
+// =============================================================================================================================
 
 pub fn decode_internal_jwt(token: &str) -> Result<InternalClaims, String> {
     let signature = JWT_INTERNAL_SIGNATURE.as_slice();
-    decode::<InternalClaims>(token, &DecodingKey::from_secret(signature), &Validation::default())
-        .map(|data| data.claims)
-        .map_err(|e| e.to_string())
+    decode::<InternalClaims>(
+        token,
+        &DecodingKey::from_secret(signature),
+        &Validation::default(),
+    )
+    .map(|data| data.claims)
+    .map_err(|e| e.to_string())
 }
+
+// =============================================================================================================================
 
 pub fn get_internal_jwt(req: &HttpRequest) -> Result<InternalClaims, String> {
     let auth_header = req
@@ -36,18 +44,22 @@ pub fn get_internal_jwt(req: &HttpRequest) -> Result<InternalClaims, String> {
         .ok_or("Missing Authorization header")?;
 
     let auth_str = auth_header.to_str().map_err(|_| "Invalid header string")?;
-    let token = auth_str.strip_prefix("Bearer ").ok_or("Invalid token format, expected Bearer")?;
+    let token = auth_str
+        .strip_prefix("Bearer ")
+        .ok_or("Invalid token format, expected Bearer")?;
 
     decode_internal_jwt(token)
 }
 
+// =============================================================================================================================
+
 pub fn authenticate_internal_request(req: &HttpRequest) -> Result<InternalClaims, HttpResponse> {
     match get_internal_jwt(req) {
-        Ok(user) => Ok(user),
+        Ok(payload) => Ok(payload),
         Err(e) => {
             let response: ApiResponse<()> = ApiResponse::Error {
                 success: false,
-                message: "Une erreur est survenue !".to_string(),
+                message: "An error occured.".to_string(),
                 error: e,
             };
             Err(HttpResponse::Unauthorized().json(response))

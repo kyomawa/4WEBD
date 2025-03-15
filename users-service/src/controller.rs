@@ -1,13 +1,26 @@
-use actix_web::{ get, post, web::{ self, Data, Json }, HttpResponse, Responder };
-use common::utils::api_response::ApiResponse;
+use actix_web::{
+    HttpRequest, HttpResponse, Responder, get, post,
+    web::{self, Data, Json, Path},
+};
+use common::{
+    jwt::{
+        external::{Role, user_has_any_of_these_roles},
+        internal::authenticate_internal_request,
+    },
+    utils::api_response::ApiResponse,
+};
 use mongodb::Database;
 
-use crate::{ model::User, service };
+use crate::{model::User, service};
 
 // =============================================================================================================================
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    let scope = web::scope("/users").service(health_check).service(get_users).service(create_user);
+    let scope = web::scope("/users")
+        .service(health_check)
+        .service(get_users)
+        .service(get_user_by_id)
+        .service(create_user);
 
     cfg.service(scope);
 }
@@ -27,7 +40,15 @@ async fn health_check() -> impl Responder {
 // =============================================================================================================================
 
 #[get("")]
-async fn get_users(db: Data<Database>) -> impl Responder {
+async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
+    let required_roles = &[Role::Admin, Role::Operator];
+    match user_has_any_of_these_roles(&req, required_roles) {
+        Ok(claims) => claims,
+        Err(err_res) => {
+            return err_res;
+        }
+    };
+
     match service::get_users(&db).await {
         Ok(users) => {
             let response: ApiResponse<Vec<User>> = ApiResponse::Success {
@@ -50,8 +71,40 @@ async fn get_users(db: Data<Database>) -> impl Responder {
 
 // =============================================================================================================================
 
+#[get("/{id}")]
+async fn get_user_by_id(db: Data<Database>, id: Path<String>) -> impl Responder {
+    let id = id.into_inner();
+    match service::get_user_by_id(&db, id.as_str()).await {
+        Ok(user) => {
+            let response: ApiResponse<User> = ApiResponse::Success {
+                success: true,
+                message: "User successfully retrieved".to_string(),
+                data: Some(user),
+            };
+            HttpResponse::InternalServerError().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> = ApiResponse::Error {
+                success: false,
+                message: "Failed to retrieve the user".to_string(),
+                error: e.to_string(),
+            };
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
 #[post("")]
-async fn create_user(db: Data<Database>, payload: Json<User>) -> impl Responder {
+async fn create_user(db: Data<Database>, payload: Json<User>, req: HttpRequest) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(claims) => claims,
+        Err(err_res) => {
+            return err_res;
+        }
+    };
+
     let data = payload.into_inner();
     match service::create_user(&db, data).await {
         Ok(user) => {

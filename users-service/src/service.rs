@@ -1,5 +1,10 @@
+use std::str::FromStr;
+
 use futures_util::TryStreamExt;
-use mongodb::{ bson::doc, Collection, Cursor, Database };
+use mongodb::{
+    Collection, Cursor, Database,
+    bson::{Document, doc, oid::ObjectId},
+};
 
 use crate::model::User;
 
@@ -15,6 +20,20 @@ pub async fn get_users(db: &Database) -> Result<Vec<User>, Box<dyn std::error::E
     let users: Vec<User> = cursor.try_collect().await?;
 
     Ok(users)
+}
+
+// =============================================================================================================================
+
+pub async fn get_user_by_id(db: &Database, id: &str) -> Result<User, Box<dyn std::error::Error>> {
+    let id = ObjectId::from_str(id).expect("The id is not a valid mongodb id");
+    let collection: Collection<User> = db.collection(COLLECTION_NAME);
+    let filter = doc! {
+        "_id" : id
+    };
+    let cursor = collection.find_one(filter).await?;
+    let user = cursor.unwrap();
+
+    Ok(user)
 }
 
 // =============================================================================================================================

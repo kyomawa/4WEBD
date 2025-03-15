@@ -1,10 +1,10 @@
 use std::env;
 
-use serde::{ Deserialize, Serialize };
-use chrono::{ Duration, Utc };
-use jsonwebtoken::{ decode, encode, DecodingKey, EncodingKey, Header, Validation };
-use actix_web::{ http::header, HttpRequest, HttpResponse };
+use actix_web::{HttpRequest, HttpResponse, http::header};
+use chrono::{Duration, Utc};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 
 use crate::utils::api_response::ApiResponse;
 
@@ -17,7 +17,7 @@ pub static JWT_EXTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum Role {
     User,
     EventCreator,
@@ -32,6 +32,8 @@ pub struct ExternalClaims {
     pub exp: i64,
 }
 
+// =============================================================================================================================
+
 pub fn encode_external_jwt(user_id: String, role: Role) -> Result<String, String> {
     let signature = JWT_EXTERNAL_SIGNATURE.as_slice();
     let claims = ExternalClaims {
@@ -39,17 +41,28 @@ pub fn encode_external_jwt(user_id: String, role: Role) -> Result<String, String
         role,
         exp: (Utc::now() + Duration::minutes(60)).timestamp(),
     };
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(signature)).map_err(|e|
-        e.to_string()
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(signature),
     )
+    .map_err(|e| e.to_string())
 }
+
+// =============================================================================================================================
 
 pub fn decode_external_jwt(token: &str) -> Result<ExternalClaims, String> {
     let signature = JWT_EXTERNAL_SIGNATURE.as_slice();
-    decode::<ExternalClaims>(token, &DecodingKey::from_secret(signature), &Validation::default())
-        .map(|data| data.claims)
-        .map_err(|e| e.to_string())
+    decode::<ExternalClaims>(
+        token,
+        &DecodingKey::from_secret(signature),
+        &Validation::default(),
+    )
+    .map(|data| data.claims)
+    .map_err(|e| e.to_string())
 }
+
+// =============================================================================================================================
 
 pub fn get_external_jwt(req: &HttpRequest) -> Result<ExternalClaims, String> {
     let auth_header = req
@@ -59,10 +72,14 @@ pub fn get_external_jwt(req: &HttpRequest) -> Result<ExternalClaims, String> {
 
     let auth_str = auth_header.to_str().map_err(|_| "Invalid header string")?;
 
-    let token = auth_str.strip_prefix("Bearer ").ok_or("Invalid token format, expected Bearer")?;
+    let token = auth_str
+        .strip_prefix("Bearer ")
+        .ok_or("Invalid token format, expected Bearer")?;
 
     decode_external_jwt(token)
 }
+
+// =============================================================================================================================
 
 pub fn get_authenticated_user(req: &HttpRequest) -> Result<ExternalClaims, HttpResponse> {
     match get_external_jwt(req) {
@@ -70,11 +87,31 @@ pub fn get_authenticated_user(req: &HttpRequest) -> Result<ExternalClaims, HttpR
         Err(e) => {
             let response: ApiResponse<()> = ApiResponse::Error {
                 success: false,
-                message: "Une erreur est survenue !".to_string(),
+                message: "An error occured !".to_string(),
                 error: e,
             };
             Err(HttpResponse::Unauthorized().json(response))
         }
+    }
+}
+
+// =============================================================================================================================
+
+pub fn user_has_any_of_these_roles(
+    req: &HttpRequest,
+    roles: &[Role],
+) -> Result<ExternalClaims, HttpResponse> {
+    let jwt_payload = get_authenticated_user(req)?;
+
+    if roles.contains(&jwt_payload.role) {
+        Ok(jwt_payload)
+    } else {
+        let response: ApiResponse<()> = ApiResponse::Error {
+            success: false,
+            message: "Access denied: insufficient role".to_string(),
+            error: "User role is not allowed".to_string(),
+        };
+        Err(HttpResponse::Unauthorized().json(response))
     }
 }
 
