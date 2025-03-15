@@ -26,13 +26,14 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service
     volumes:
-      - ./auth-service:/usr/src/app
-    command: cargo watch -x run
+      - ./auth-service:/usr/src/app/auth-service
+      - ./common:/usr/src/app/common
+      - auth-target-volume:/usr/src/app/auth-service/target
     depends_on:
       - database
     environment:
-      SECRET_SESSION: ${SECRET_SESSION}
-      INTERNAL_SECRET_SESSION: ${INTERNAL_SECRET_SESSION}
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_AUTH_SERVICE: ${DATABASE_URL_AUTH_SERVICE}
 
   users-service:
@@ -41,11 +42,15 @@ services:
       dockerfile: Dockerfile
     container_name: users-service
     volumes:
-      - ./users-service:/usr/src/app
-    command: cargo watch -x run
+      - ./users-service:/usr/src/app/users-service
+      - ./common:/usr/src/app/common
+      - users-target-volume:/usr/src/app/users-service/target
     depends_on:
       - database
     environment:
-      SECRET_SESSION: ${SECRET_SESSION}
-      INTERNAL_SECRET_SESSION: ${INTERNAL_SECRET_SESSION}
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_USERS_SERVICE: ${DATABASE_URL_USERS_SERVICE}
+volumes:
+  auth-target-volume:
+  users-target-volume:
