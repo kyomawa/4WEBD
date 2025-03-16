@@ -1,6 +1,7 @@
+use common::utils::utils::{serialize_option_object_id_as_hex_string, trim_lowercase};
 use mongodb::bson::oid::ObjectId;
-use serde::{ Deserialize, Serialize };
-use common::utils::utils::serialize_option_object_id_as_hex_string;
+use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 // =============================================================================================================================
 
@@ -16,6 +17,56 @@ pub struct User {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct CreateUserRequest {
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 2,
+        max = 30,
+        message = "First name must be between 2 and 30 characters"
+    ))]
+    pub first_name: String,
+
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 2,
+        max = 30,
+        message = "Last name must be between 2 and 30 characters"
+    ))]
+    pub last_name: String,
+
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(email(message = "Email must be valid"))]
+    pub email: String,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateUserRequest {
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 2,
+        max = 30,
+        message = "First name must be between 2 and 30 characters"
+    ))]
+    first_name: String,
+
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 2,
+        max = 30,
+        message = "Last name must be between 2 and 30 characters"
+    ))]
+    last_name: String,
+
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(email(message = "Email must be valid"))]
+    email: String,
 }
 
 // =============================================================================================================================
