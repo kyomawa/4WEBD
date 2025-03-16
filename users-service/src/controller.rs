@@ -4,15 +4,16 @@ use actix_web::{
 };
 use common::{
     jwt::{
-        external::{ExternalClaims, Role, get_authenticated_user, user_has_any_of_these_roles},
+        external::{ExternalClaims, get_authenticated_user, user_has_any_of_these_roles},
         internal::authenticate_internal_request,
     },
+    models::{AuthRole, User},
     utils::api_response::ApiResponse,
 };
-use mongodb::Database;
+use mongodb::{Database, bson::oid::ObjectId};
 
 use crate::{
-    model::{CreateUserRequest, UpdateUserRequest, User},
+    model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest},
     service,
 };
 
@@ -48,7 +49,7 @@ async fn health_check() -> impl Responder {
 
 #[get("")]
 async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
-    let required_roles = &[Role::Admin, Role::Operator];
+    let required_roles = &[AuthRole::Admin, AuthRole::Operator];
     match user_has_any_of_these_roles(&req, required_roles) {
         Ok(claims) => claims,
         Err(err_res) => return err_res,
@@ -67,6 +68,40 @@ async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
             let response: ApiResponse<()> = ApiResponse::Error {
                 success: false,
                 message: "An error occured while retrieving users.".to_string(),
+                error: e.to_string(),
+            };
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[get("/id-by-email")]
+async fn get_user_id_by_email(
+    db: Data<Database>,
+    payload: Json<GetUserIdByEmailRequest>,
+    req: HttpRequest,
+) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(claims) => claims,
+        Err(err_res) => return err_res,
+    };
+
+    let data = payload.into_inner();
+    match service::get_user_id_by_email(&db, data).await {
+        Ok(id) => {
+            let response: ApiResponse<ObjectId> = ApiResponse::Success {
+                success: true,
+                message: "User successfully retrieved.".to_string(),
+                data: Some(id),
+            };
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> = ApiResponse::Error {
+                success: false,
+                message: "Failed to retrieve the user with his email.".to_string(),
                 error: e.to_string(),
             };
             HttpResponse::InternalServerError().json(response)
@@ -114,7 +149,7 @@ async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) 
     };
     let id = id.into_inner();
 
-    if !(role == Role::Admin || role == Role::Operator) && user_id != id {
+    if !(role == AuthRole::Admin || role == AuthRole::Operator) && user_id != id {
         let response: ApiResponse<()> = ApiResponse::Error {
             success: false,
             message: "Access denied: insufficient role".to_string(),
@@ -222,7 +257,7 @@ async fn update_user_by_id(
     payload: Json<UpdateUserRequest>,
     req: HttpRequest,
 ) -> impl Responder {
-    let required_roles = &[Role::Admin];
+    let required_roles = &[AuthRole::Admin];
     match user_has_any_of_these_roles(&req, required_roles) {
         Ok(claims) => claims,
         Err(err_res) => return err_res,
@@ -255,7 +290,7 @@ async fn update_user_by_id(
 
 #[delete("/{id}")]
 async fn delete_user(db: Data<Database>, id: Path<String>, req: HttpRequest) -> impl Responder {
-    let required_roles = &[Role::Admin];
+    let required_roles = &[AuthRole::Admin];
     match user_has_any_of_these_roles(&req, required_roles) {
         Ok(claims) => claims,
         Err(err_res) => return err_res,

@@ -6,7 +6,7 @@ use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode}
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-use crate::utils::api_response::ApiResponse;
+use crate::{models::AuthRole, utils::api_response::ApiResponse};
 
 // =============================================================================================================================
 
@@ -17,24 +17,16 @@ pub static JWT_EXTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub enum Role {
-    User,
-    EventCreator,
-    Operator,
-    Admin,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExternalClaims {
     pub user_id: String,
-    pub role: Role,
+    pub role: AuthRole,
     pub exp: i64,
 }
 
 // =============================================================================================================================
 
-pub fn encode_external_jwt(user_id: String, role: Role) -> Result<String, String> {
+pub fn encode_external_jwt(user_id: String, role: AuthRole) -> Result<String, String> {
     let signature = JWT_EXTERNAL_SIGNATURE.as_slice();
     let claims = ExternalClaims {
         user_id,
@@ -99,7 +91,7 @@ pub fn get_authenticated_user(req: &HttpRequest) -> Result<ExternalClaims, HttpR
 
 pub fn user_has_any_of_these_roles(
     req: &HttpRequest,
-    roles: &[Role],
+    roles: &[AuthRole],
 ) -> Result<ExternalClaims, HttpResponse> {
     let jwt_payload = get_authenticated_user(req)?;
 

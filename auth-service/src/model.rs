@@ -1,17 +1,10 @@
-use common::utils::utils::{serialize_option_object_id_as_hex_string, trim_lowercase};
+use common::{
+    models::AuthRole,
+    utils::utils::{serialize_option_object_id_as_hex_string, trim, trim_lowercase},
+};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
-
-// =============================================================================================================================
-
-#[derive(Debug, Serialize, Deserialize)]
-enum AuthRole {
-    User,
-    EventCreator,
-    Operator,
-    Admin,
-}
 
 // =============================================================================================================================
 
@@ -23,10 +16,23 @@ pub struct Auth {
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_option_object_id_as_hex_string"
     )]
-    id: Option<ObjectId>,
-    password: String,
-    role: AuthRole,
-    user_id: ObjectId,
+    pub id: Option<ObjectId>,
+    pub password: String,
+    pub role: AuthRole,
+    pub user_id: ObjectId,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct LoginRequest {
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 12,
+        max = 32,
+        message = "password must be between 12 and 32 characters"
+    ))]
+    pub password: String,
 }
 
 // =============================================================================================================================
@@ -36,21 +42,39 @@ pub struct Auth {
 pub struct CreateAuthRequest {
     #[serde(deserialize_with = "trim_lowercase")]
     #[validate(length(
-        min = 12,
-        max = 32,
-        message = "password must be between 12 and 32 characters"
+        min = 2,
+        max = 30,
+        message = "First name must be between 2 and 30 characters"
     ))]
-    password: String,
+    pub first_name: String,
 
     #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(length(
+        min = 2,
+        max = 30,
+        message = "Last name must be between 2 and 30 characters"
+    ))]
+    pub last_name: String,
+
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(email(message = "Email must be valid"))]
+    pub email: String,
+
+    #[serde(deserialize_with = "trim")]
     #[validate(length(
         min = 12,
         max = 32,
         message = "password must be between 12 and 32 characters"
     ))]
-    confirm_password: String,
-    role: AuthRole,
-    user_id: ObjectId,
+    pub password: String,
+
+    #[serde(deserialize_with = "trim")]
+    #[validate(length(
+        min = 12,
+        max = 32,
+        message = "password must be between 12 and 32 characters"
+    ))]
+    pub confirm_password: String,
 }
 
 // =============================================================================================================================

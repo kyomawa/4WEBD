@@ -1,21 +1,13 @@
-use common::utils::utils::{serialize_option_object_id_as_hex_string, trim_lowercase};
-use mongodb::bson::oid::ObjectId;
+use common::utils::utils::trim_lowercase;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct User {
-    #[serde(
-        rename = "id",
-        alias = "_id",
-        skip_serializing_if = "Option::is_none",
-        serialize_with = "serialize_option_object_id_as_hex_string"
-    )]
-    pub id: Option<ObjectId>,
-    pub first_name: String,
-    pub last_name: String,
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct GetUserIdByEmailRequest {
+    #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(email(message = "Email must be valid"))]
     pub email: String,
 }
 
