@@ -2,7 +2,7 @@ use common::{
     models::AuthRole,
     utils::utils::{serialize_option_object_id_as_hex_string, trim, trim_lowercase},
 };
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{oid::ObjectId, serde_helpers::serialize_object_id_as_hex_string};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -19,6 +19,8 @@ pub struct Auth {
     pub id: Option<ObjectId>,
     pub password: String,
     pub role: AuthRole,
+
+    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
     pub user_id: ObjectId,
 }
 
@@ -108,26 +110,6 @@ fn validate_passwords(req: &CreateAuthRequest) -> Result<(), ValidationError> {
         let mut error = ValidationError::new("password_no_special");
         error.message = Some("Password must contain at least one special character.".into());
         return Err(error);
-    }
-
-    let pwned_check = futures::executor::block_on(async {
-        let pwned = pwned::api::PwnedBuilder::default().build().unwrap();
-        pwned.check_password(&req.password).await
-    });
-
-    match pwned_check {
-        Ok(response) => {
-            if response.found {
-                let mut error = ValidationError::new("password_pwned");
-                error.message = Some("This password has been pwned. Please choose another.".into());
-                return Err(error);
-            }
-        }
-        Err(e) => {
-            let mut error = ValidationError::new("pwned_api_error");
-            error.message = Some(format!("Error checking password pwned: {}", e).into());
-            return Err(error);
-        }
     }
 
     Ok(())

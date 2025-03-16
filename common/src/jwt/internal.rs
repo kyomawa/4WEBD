@@ -1,7 +1,8 @@
 use std::env;
 
 use actix_web::{HttpRequest, HttpResponse, http::header};
-use jsonwebtoken::{DecodingKey, Validation, decode};
+use chrono::{Duration, Utc};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +21,21 @@ pub static JWT_INTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
 pub struct InternalClaims {
     pub internal: bool,
     pub exp: i64,
+}
+
+// =============================================================================================================================
+
+pub fn encode_internal_jwt() -> Result<String, String> {
+    let claims = InternalClaims {
+        internal: true,
+        exp: (Utc::now() + Duration::minutes(5)).timestamp(),
+    };
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(JWT_INTERNAL_SIGNATURE.as_slice()),
+    )
+    .map_err(|e| e.to_string())
 }
 
 // =============================================================================================================================
@@ -57,11 +73,8 @@ pub fn authenticate_internal_request(req: &HttpRequest) -> Result<InternalClaims
     match get_internal_jwt(req) {
         Ok(payload) => Ok(payload),
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured.".to_string(),
-                error: e,
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("The request to this endpoint must be internal.", e);
             Err(HttpResponse::Unauthorized().json(response))
         }
     }

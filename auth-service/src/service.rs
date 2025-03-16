@@ -1,6 +1,6 @@
 use bcrypt::{DEFAULT_COST, hash, verify};
 use common::{
-    jwt::external::encode_external_jwt,
+    jwt::{external::encode_external_jwt, internal::encode_internal_jwt},
     models::{AuthRole, User},
     utils::api_response::ApiResponse,
 };
@@ -32,21 +32,28 @@ pub async fn register(
         "last_name": &payload.last_name,
     });
 
+    let internal_token = encode_internal_jwt()?;
     let res: ApiResponse<User> = client
         .post("http://users-service:8080/users")
+        .header("Authorization", format!("Bearer {}", internal_token))
         .json(&user)
         .send()
         .await?
         .json::<ApiResponse<User>>()
         .await?;
 
-    let user_obj = match res {
+    let user = match res {
         ApiResponse::Success {
             data: Some(user), ..
         } => user,
-        _ => return Err("Erreur lors de la création de l'utilisateur".into()),
+        ApiResponse::Error { error, .. } => return Err(error.into()),
+        other => return Err(format!("Unexpected response from User Service: {:?}", other).into()),
     };
-    let id = user_obj.id.ok_or("Missing user id")?;
+
+    let id = match user.id {
+        Some(id) => id,
+        None => return Err("Missing user id".into()),
+    };
 
     let collection: Collection<Auth> = db.collection(COLLECTION_NAME);
     let hashed_password = hash(&payload.password, DEFAULT_COST)?;

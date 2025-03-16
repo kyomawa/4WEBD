@@ -37,11 +37,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 #[get("/health")]
 async fn health_check() -> impl Responder {
-    let response: ApiResponse<()> = ApiResponse::Success {
-        success: true,
-        message: String::from("🟢 Server is Alive"),
-        data: None,
-    };
+    let response: ApiResponse<()> = ApiResponse::success("🟢 Server is Alive", None);
     HttpResponse::Ok().json(response)
 }
 
@@ -57,19 +53,13 @@ async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
     match service::get_users(&db).await {
         Ok(users) => {
-            let response: ApiResponse<Vec<User>> = ApiResponse::Success {
-                success: true,
-                message: "Users have been successfully recovered".to_string(),
-                data: Some(users),
-            };
+            let response: ApiResponse<Vec<User>> =
+                ApiResponse::success("Users have been successfully recovered", Some(users));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured while retrieving users.".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("An error occured while retrieving users.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -91,19 +81,13 @@ async fn get_user_id_by_email(
     let data = payload.into_inner();
     match service::get_user_id_by_email(&db, data).await {
         Ok(id) => {
-            let response: ApiResponse<ObjectId> = ApiResponse::Success {
-                success: true,
-                message: "User successfully retrieved.".to_string(),
-                data: Some(id),
-            };
+            let response: ApiResponse<ObjectId> =
+                ApiResponse::success("User successfully retrieved.", Some(id));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "Failed to retrieve the user with his email.".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to retrieve the user with his email.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -121,19 +105,13 @@ async fn get_me(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
     match service::get_user_by_id(&db, id).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: "User successfully retrieved".to_string(),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User successfully retrieved", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "Failed to retrieve the user".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to retrieve the user", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -150,29 +128,22 @@ async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) 
     let id = id.into_inner();
 
     if !(role == AuthRole::Admin || role == AuthRole::Operator) && user_id != id {
-        let response: ApiResponse<()> = ApiResponse::Error {
-            success: false,
-            message: "Access denied: insufficient role".to_string(),
-            error: "User is not allowed to access another profile".to_string(),
-        };
+        let response: ApiResponse<()> = ApiResponse::error(
+            "Access denied: insufficient role",
+            "User is not allowed to access another profile",
+        );
         return HttpResponse::Unauthorized().json(response);
     }
 
     match service::get_user_by_id(&db, id).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: "User successfully retrieved".to_string(),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User successfully retrieved", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "Failed to retrieve the user".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to retrieve the user", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -194,19 +165,13 @@ async fn create_user(
     let data = payload.into_inner();
     match service::create_user(&db, data).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: String::from("User created successfully"),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User created successfully", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: String::from("Failed to create user"),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to create user", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -230,19 +195,12 @@ async fn update_me(
 
     match service::update_user_by_id(&db, id, data).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: "User successfully updated.".to_string(),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User successfully updated.", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured.".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> = ApiResponse::error("An error occurred.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -268,19 +226,12 @@ async fn update_user_by_id(
 
     match service::update_user_by_id(&db, id, data).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: "User successfully updated.".to_string(),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User successfully updated.", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured.".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> = ApiResponse::error("An error occurred.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
@@ -300,19 +251,12 @@ async fn delete_user(db: Data<Database>, id: Path<String>, req: HttpRequest) -> 
 
     match service::delete_user(&db, id).await {
         Ok(user) => {
-            let response: ApiResponse<User> = ApiResponse::Success {
-                success: true,
-                message: "User was successfully deleted.".to_string(),
-                data: Some(user),
-            };
+            let response: ApiResponse<User> =
+                ApiResponse::success("User was successfully deleted.", Some(user));
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured".to_string(),
-                error: e.to_string(),
-            };
+            let response: ApiResponse<()> = ApiResponse::error("An error occurred", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }

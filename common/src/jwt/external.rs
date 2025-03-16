@@ -77,11 +77,8 @@ pub fn get_authenticated_user(req: &HttpRequest) -> Result<ExternalClaims, HttpR
     match get_external_jwt(req) {
         Ok(user) => Ok(user),
         Err(e) => {
-            let response: ApiResponse<()> = ApiResponse::Error {
-                success: false,
-                message: "An error occured !".to_string(),
-                error: e,
-            };
+            let response: ApiResponse<()> =
+                ApiResponse::error("The user must be authenticated.", e);
             Err(HttpResponse::Unauthorized().json(response))
         }
     }
@@ -98,11 +95,10 @@ pub fn user_has_any_of_these_roles(
     if roles.contains(&jwt_payload.role) {
         Ok(jwt_payload)
     } else {
-        let response: ApiResponse<()> = ApiResponse::Error {
-            success: false,
-            message: "Access denied: insufficient role".to_string(),
-            error: "User role is not allowed".to_string(),
-        };
+        let response: ApiResponse<()> = ApiResponse::error(
+            "Access denied: insufficient role",
+            "User role is not allowed",
+        );
         Err(HttpResponse::Unauthorized().json(response))
     }
 }
