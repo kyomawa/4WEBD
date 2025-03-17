@@ -1,17 +1,20 @@
 use bcrypt::{DEFAULT_COST, hash, verify};
 use common::{
     jwt::{external::encode_external_jwt, internal::encode_internal_jwt},
-    models::{AuthRole, User},
-    utils::api_response::ApiResponse,
+    models::AuthRole,
+    utils::api_response::{ApiResponse, ObjectIdWrapper},
 };
 use mongodb::{
     Collection, Database,
     bson::{doc, oid::ObjectId},
 };
 use serde_json::json;
+use std::{thread, time::Duration};
 use validator::Validate;
 
-use crate::model::{Auth, CreateAuthRequest, LoginRequest};
+use crate::model::{
+    Auth, CreateAuthRequest, CreateUserInternalResponse, LoginRequest, LoginResponse,
+};
 
 // =============================================================================================================================
 
@@ -33,13 +36,13 @@ pub async fn register(
     });
 
     let internal_token = encode_internal_jwt()?;
-    let res: ApiResponse<User> = client
+    let res: ApiResponse<CreateUserInternalResponse> = client
         .post("http://users-service:8080/users")
         .header("Authorization", format!("Bearer {}", internal_token))
         .json(&user)
         .send()
         .await?
-        .json::<ApiResponse<User>>()
+        .json::<ApiResponse<CreateUserInternalResponse>>()
         .await?;
 
     let user = match res {
@@ -50,10 +53,7 @@ pub async fn register(
         other => return Err(format!("Unexpected response from User Service: {:?}", other).into()),
     };
 
-    let id = match user.id {
-        Some(id) => id,
-        None => return Err("Missing user id".into()),
-    };
+    let id = ObjectId::parse_str(&user.id)?;
 
     let collection: Collection<Auth> = db.collection(COLLECTION_NAME);
     let hashed_password = hash(&payload.password, DEFAULT_COST)?;
@@ -76,9 +76,30 @@ pub async fn register(
 
 pub async fn login(
     db: &Database,
-    user_id: ObjectId,
     payload: LoginRequest,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<LoginResponse, Box<dyn std::error::Error>> {
+    let email = json!({ "email": &payload.email });
+    let client = reqwest::Client::new();
+
+    let internal_token = encode_internal_jwt()?;
+    let res: ApiResponse<ObjectIdWrapper> = client
+        .get("http://users-service:8080/users/id-by-email")
+        .header("Authorization", format!("Bearer {}", internal_token))
+        .json(&email)
+        .send()
+        .await?
+        .json::<ApiResponse<ObjectIdWrapper>>()
+        .await?;
+
+    let user_id: ObjectId = match res {
+        ApiResponse::Success {
+            data: Some(wrapper),
+            ..
+        } => wrapper.id,
+        ApiResponse::Error { error, .. } => return Err(error.into()),
+        other => return Err(format!("Unexpected response from User Service: {:?}", other).into()),
+    };
+
     let collection: Collection<Auth> = db.collection(COLLECTION_NAME);
 
     let credentials = match collection.find_one(doc! { "user_id": user_id  }).await? {
@@ -86,15 +107,14 @@ pub async fn login(
         None => return Err("No user with this id exist".into()),
     };
 
-    match verify(&payload.password, &credentials.password) {
-        Ok(true) => (),
-        Ok(false) => return Err("Invalid password".into()),
-        Err(e) => return Err(e.into()),
-    };
+    if let Err(_) | Ok(false) = verify(&payload.password, &credentials.password) {
+        thread::sleep(Duration::from_millis(300));
+        return Err("Invalid email or password".into());
+    }
 
     let token = encode_external_jwt(credentials.user_id.to_hex(), credentials.role)?;
 
-    Ok(token)
+    Ok(LoginResponse { token })
 }
 
 // =============================================================================================================================

@@ -2,7 +2,7 @@ use common::{
     models::AuthRole,
     utils::utils::{serialize_option_object_id_as_hex_string, trim, trim_lowercase},
 };
-use mongodb::bson::{oid::ObjectId, serde_helpers::serialize_object_id_as_hex_string};
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -20,7 +20,7 @@ pub struct Auth {
     pub password: String,
     pub role: AuthRole,
 
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
+    #[serde(rename = "user_id")]
     pub user_id: ObjectId,
 }
 
@@ -29,12 +29,33 @@ pub struct Auth {
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct LoginRequest {
     #[serde(deserialize_with = "trim_lowercase")]
+    #[validate(email(message = "Email must be valid"))]
+    pub email: String,
+
     #[validate(length(
-        min = 12,
-        max = 32,
-        message = "password must be between 12 and 32 characters"
+        min = 2,
+        max = 64,
+        message = "password must be between 2 and 64 characters"
     ))]
     pub password: String,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LoginResponse {
+    pub token: String,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateUserInternalResponse {
+    #[serde(rename = "id", alias = "_id")]
+    pub id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
 }
 
 // =============================================================================================================================

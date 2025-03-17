@@ -1,3 +1,5 @@
+use crate::utils::utils::deserialize_object_id;
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 // =============================================================================================================================
@@ -48,6 +50,21 @@ impl<T> ApiResponse<T> {
             error: error.into(),
         }
     }
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObjectIdToString {
+    pub id: String,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObjectIdWrapper {
+    #[serde(rename = "id", deserialize_with = "deserialize_object_id")]
+    pub id: ObjectId,
 }
 
 // =============================================================================================================================

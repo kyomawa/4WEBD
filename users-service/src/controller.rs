@@ -7,13 +7,13 @@ use common::{
         external::{ExternalClaims, get_authenticated_user, user_has_any_of_these_roles},
         internal::authenticate_internal_request,
     },
-    models::{AuthRole, User},
-    utils::api_response::ApiResponse,
+    models::AuthRole,
+    utils::api_response::{ApiResponse, ObjectIdToString},
 };
-use mongodb::{Database, bson::oid::ObjectId};
+use mongodb::Database;
 
 use crate::{
-    model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest},
+    model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest, User},
     service,
 };
 
@@ -22,8 +22,9 @@ use crate::{
 pub fn config(cfg: &mut web::ServiceConfig) {
     let scope = web::scope("/users")
         .service(health_check)
-        .service(get_me)
         .service(get_users)
+        .service(get_me)
+        .service(get_user_id_by_email)
         .service(get_user_by_id)
         .service(create_user)
         .service(update_me)
@@ -81,8 +82,10 @@ async fn get_user_id_by_email(
     let data = payload.into_inner();
     match service::get_user_id_by_email(&db, data).await {
         Ok(id) => {
-            let response: ApiResponse<ObjectId> =
-                ApiResponse::success("User successfully retrieved.", Some(id));
+            let response: ApiResponse<ObjectIdToString> = ApiResponse::success(
+                "User successfully retrieved.",
+                Some(ObjectIdToString { id: id.to_string() }),
+            );
             HttpResponse::Ok().json(response)
         }
         Err(e) => {

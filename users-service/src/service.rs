@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use common::models::User;
 use futures_util::TryStreamExt;
 use mongodb::{
     Collection, Cursor, Database,
@@ -8,7 +7,7 @@ use mongodb::{
 };
 use validator::Validate;
 
-use crate::model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest};
+use crate::model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest, User};
 
 // =============================================================================================================================
 
