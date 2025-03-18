@@ -1,4 +1,5 @@
 use actix_web::{App, HttpServer, web};
+use controller::config;
 
 mod controller;
 mod db;
@@ -13,8 +14,12 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("❌ Failed to connect to database");
 
-    HttpServer::new(move || App::new().app_data(web::Data::new(db.clone())))
-        .bind(("0.0.0.0", 8080))?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(db.clone()))
+            .configure(config)
+    })
+    .bind(("0.0.0.0", 8080))?
+    .run()
+    .await
 }

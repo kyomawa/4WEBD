@@ -46,7 +46,7 @@ pub struct CreateEventRequest {
     #[validate(custom(function = "validate_date_not_in_past"))]
     pub date: DateTime,
 
-    #[validate(range(min = 1, message = "Capacity must be at least 1"))]
+    #[validate(range(min = 25, message = "Capacity must be at least 25"))]
     pub capacity: u16,
 
     pub remaining_seats: u16,
@@ -75,7 +75,7 @@ pub struct UpdateEventRequest {
     #[validate(custom(function = "validate_date_not_in_past"))]
     pub date: DateTime,
 
-    #[validate(range(min = 1, message = "Capacity must be at least 1"))]
+    #[validate(range(min = 25, message = "Capacity must be at least 25"))]
     pub capacity: u16,
 
     pub remaining_seats: u16,

@@ -38,7 +38,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 #[get("/health")]
 async fn health_check() -> impl Responder {
-    let response: ApiResponse<()> = ApiResponse::success("🟢 Server is Alive", None);
+    let response: ApiResponse<()> = ApiResponse::success("🟢 Users Service is Alive", None);
     HttpResponse::Ok().json(response)
 }
 
