@@ -1,0 +1,16 @@
+[package]
+name = "events-service"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4"
+mongodb = "3.2.2"
+bson = { version = "2.14.0", features = ["chrono-0_4"] }
+serde = { version = "*", features = ["derive"]}
+serde_json = "1.0.140"
+validator = { version = "0.20.0", features = ["derive"]}
+chrono = "0.4.40"
+dotenv = "0.15.0"
+futures-util = "0.3.31"
+common = { path = "../common" }

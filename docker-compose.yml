@@ -51,6 +51,23 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_USERS_SERVICE: ${DATABASE_URL_USERS_SERVICE}
+
+  events-service:
+    build:
+      context: ./events-service
+      dockerfile: Dockerfile
+    container_name: events-service
+    volumes:
+      - ./events-service:/usr/src/app/events-service
+      - ./common:/usr/src/app/common
+      - events-target-volume:/usr/src/app/events-service/target
+    depends_on:
+      - database
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_EVENTS_SERVICE: ${DATABASE_URL_EVENTS_SERVICE}
 volumes:
   auth-target-volume:
   users-target-volume:
+  events-target-volume:
