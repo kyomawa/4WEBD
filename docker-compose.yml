@@ -9,6 +9,8 @@ services:
       depends_on: 
         - auth-service
         - users-service
+        - events-service
+        - tickets-service
   database:
     image: mongo:latest
     container_name: database
@@ -67,7 +69,24 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_EVENTS_SERVICE: ${DATABASE_URL_EVENTS_SERVICE}
+
+  tickets-service:
+    build:
+      context: ./tickets-service
+      dockerfile: Dockerfile
+    container_name: tickets-service
+    volumes:
+      - ./tickets-service:/usr/src/app/tickets-service
+      - ./common:/usr/src/app/common
+      - tickets-target-volume:/usr/src/app/tickets-service/target
+    depends_on:
+      - database
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_TICKETS_SERVICE: ${DATABASE_URL_TICKETS_SERVICE}
 volumes:
   auth-target-volume:
   users-target-volume:
   events-target-volume:
+  tickets-target-volume:
