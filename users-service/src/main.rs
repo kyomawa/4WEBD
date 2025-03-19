@@ -1,8 +1,10 @@
 use actix_web::{App, HttpServer, web};
 use controller::config;
+use extractor::deserialize_error_extractor;
 
 mod controller;
 mod db;
+mod extractor;
 mod model;
 mod service;
 
@@ -19,6 +21,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db.clone()))
+            .app_data(deserialize_error_extractor())
             .configure(config)
     })
     .bind(("0.0.0.0", 8080))?

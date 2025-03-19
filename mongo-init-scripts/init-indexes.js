@@ -30,7 +30,7 @@ db.tickets.createIndex({ user_id: 1, event_id: 1 });
 // 5. EVENTS DATABASE
 db = db.getSiblingDB("events-service");
 db.events.createIndex({ date: 1 });
-db.events.createIndex({ title: 1 });
+db.events.createIndex({ title: 1 }, { unique: true });
 db.events.createIndex({ capacity: 1 });
 db.events.createIndex({ remaining_seats: 1 });
 db.events.createIndex({ creator_id: 1 });

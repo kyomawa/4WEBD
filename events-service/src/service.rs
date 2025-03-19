@@ -1,6 +1,7 @@
 use bson::{DateTime, doc, oid::ObjectId, to_document};
-use futures_util::{StreamExt, TryStreamExt};
-use mongodb::{Collection, Cursor, Database};
+use common::models::AuthRole;
+use futures_util::TryStreamExt;
+use mongodb::{Collection, Cursor, Database, options::ReturnDocument};
 use validator::Validate;
 
 use crate::model::{CreateEventRequest, Event, UpdateEventRequest};
@@ -80,6 +81,7 @@ pub async fn update_event_by_id(
 
     match collection
         .find_one_and_update(doc! { "_id": id}, doc! { "$set": update_doc})
+        .return_document(ReturnDocument::After)
         .await?
     {
         Some(event) => Ok(event),
@@ -91,14 +93,23 @@ pub async fn update_event_by_id(
 
 pub async fn delete_event_by_id(
     db: &Database,
+    creator_id: String,
+    role: AuthRole,
     id: String,
 ) -> Result<Event, Box<dyn std::error::Error>> {
     let id = ObjectId::parse_str(&id)?;
+    let creator_id = ObjectId::parse_str(&creator_id)?;
     let collection: Collection<Event> = db.collection(COLLECTION_NAME);
+    let filter = match role {
+        AuthRole::Admin => {
+            doc! { "_id" : id }
+        }
+        _ => doc! { "_id": id, "creator_id": creator_id},
+    };
 
-    match collection.find_one_and_delete(doc! { "_id": id}).await? {
+    match collection.find_one_and_delete(filter).await? {
         Some(event) => Ok(event),
-        None => Err("No event was found with this id".into()),
+        None => Err("No event was found with this id or the user who's trying to delete the event is not the creator".into()),
     }
 }
 

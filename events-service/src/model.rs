@@ -1,7 +1,11 @@
-use common::utils::utils::{serialize_option_object_id_as_hex_string, trim};
+use common::utils::utils::{
+    deserialize_datetime_from_any, serialize_option_object_id_as_hex_string, trim,
+};
 use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
+
+use mongodb::bson::serde_helpers::serialize_bson_datetime_as_rfc3339_string;
 
 // =============================================================================================================================
 
@@ -17,9 +21,17 @@ pub struct Event {
 
     pub title: String,
     pub description: String,
+    #[serde(
+        deserialize_with = "deserialize_datetime_from_any",
+        serialize_with = "serialize_bson_datetime_as_rfc3339_string"
+    )]
     pub date: DateTime,
     pub capacity: u16,
     pub remaining_seats: u16,
+    #[serde(
+        deserialize_with = "deserialize_datetime_from_any",
+        serialize_with = "serialize_bson_datetime_as_rfc3339_string"
+    )]
     pub created_at: DateTime,
 
     #[serde(rename = "creator_id")]
@@ -43,6 +55,10 @@ pub struct CreateEventRequest {
     #[validate(length(min = 10, message = "Description must be at least 10 characters"))]
     pub description: String,
 
+    #[serde(
+        serialize_with = "serialize_bson_datetime_as_rfc3339_string",
+        deserialize_with = "deserialize_datetime_from_any"
+    )]
     #[validate(custom(function = "validate_date_not_in_past"))]
     pub date: DateTime,
 
@@ -50,9 +66,6 @@ pub struct CreateEventRequest {
     pub capacity: u16,
 
     pub remaining_seats: u16,
-
-    #[serde(rename = "creator_id")]
-    pub creator_id: ObjectId,
 }
 
 // =============================================================================================================================
@@ -72,6 +85,10 @@ pub struct UpdateEventRequest {
     #[validate(length(min = 10, message = "Description must be at least 10 characters"))]
     pub description: String,
 
+    #[serde(
+        serialize_with = "serialize_bson_datetime_as_rfc3339_string",
+        deserialize_with = "deserialize_datetime_from_any"
+    )]
     #[validate(custom(function = "validate_date_not_in_past"))]
     pub date: DateTime,
 
