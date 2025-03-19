@@ -3,13 +3,13 @@ use common::{models::AuthRole, utils::api_response::ApiResponse};
 use futures_util::TryStreamExt;
 use mongodb::bson::oid::ObjectId;
 use mongodb::bson::{Document, doc, to_bson};
+use mongodb::options::ReturnDocument;
 use mongodb::{Collection, Database, bson::DateTime};
 use serde_json::json;
 use validator::Validate;
 
 use crate::model::{
-    CreateTicketRequest, GetEventInternalResponse, Ticket, TicketStatus,
-    UpdateEventRemainingSeatsInternalResponse, UpdateTicketRequest,
+    CreateTicketRequest, GetEventInternalResponse, Ticket, TicketStatus, UpdateTicketRequest,
 };
 
 // =============================================================================================================================
@@ -90,9 +90,17 @@ pub async fn create_ticket(
         return Err("No more seats are avalaible for this event.".into());
     }
 
+    if event.date < DateTime::now() {
+        return Err("This event is not avalaible.".into());
+    }
+
+    if ticket_data.seat_number > event.capacity {
+        return Err("This seat doesn't exist.".into());
+    }
+
     let mut ticket = Ticket {
         id: None,
-        price: ticket_data.price,
+        price: event.price,
         seat_number: ticket_data.seat_number,
         status: TicketStatus::Active,
         purchase_date: DateTime::now(),
@@ -123,7 +131,6 @@ pub async fn update_ticket_by_id(
 
     let mut update_fields = doc! {
       "seat_number": ticket_data.seat_number,
-      "price": ticket_data.price,
     };
 
     if let AuthRole::Admin = role {
@@ -138,6 +145,7 @@ pub async fn update_ticket_by_id(
 
     match collection
         .find_one_and_update(doc! { "_id": ticket_id }, update_doc)
+        .return_document(ReturnDocument::After)
         .await?
     {
         Some(ticket) => Ok(ticket),
@@ -169,7 +177,11 @@ pub async fn cancel_ticket_by_id(
 
     let collection: Collection<Ticket> = db.collection("tickets");
 
-    match collection.find_one_and_update(filter, update_doc).await? {
+    match collection
+        .find_one_and_update(filter, update_doc)
+        .return_document(ReturnDocument::After)
+        .await?
+    {
         Some(ticket) => {
             update_event_remaining_seats_by_id_request(ticket.event_id, 1).await?;
             Ok(ticket)
@@ -202,7 +214,11 @@ pub async fn refund_ticket_by_id(
 
     let collection: Collection<Ticket> = db.collection("tickets");
 
-    match collection.find_one_and_update(filter, update_doc).await? {
+    match collection
+        .find_one_and_update(filter, update_doc)
+        .return_document(ReturnDocument::After)
+        .await?
+    {
         Some(ticket) => {
             update_event_remaining_seats_by_id_request(ticket.event_id, 1).await?;
             Ok(ticket)
@@ -240,22 +256,15 @@ async fn update_event_remaining_seats_by_id_request(
     let internal_token = encode_internal_jwt()?;
     let payload = json!({ "delta": delta });
 
-    let res_future = client
-        .post(format!(
+    client
+        .patch(format!(
             "http://events-service:8080/events/{}/update-seats",
             event_id.to_hex()
         ))
         .header("Authorization", format!("Bearer {}", internal_token))
         .json(&payload)
         .send()
-        .await?
-        .json::<ApiResponse<UpdateEventRemainingSeatsInternalResponse>>();
-
-    let res_value = res_future.await?;
-    match res_value {
-        ApiResponse::Success { .. } => {}
-        ApiResponse::Error { error, .. } => return Err(error.into()),
-    };
+        .await?;
 
     Ok(())
 }

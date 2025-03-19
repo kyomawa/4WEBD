@@ -25,6 +25,10 @@ db.notifications.createIndex({ status: 1 });
 db = db.getSiblingDB("tickets-service");
 db.tickets.createIndex({ user_id: 1 });
 db.tickets.createIndex({ event_id: 1 });
+db.tickets.createIndex(
+  { event_id: 1, seat_number: 1 },
+  { unique: true }
+);
 db.tickets.createIndex({ user_id: 1, event_id: 1 });
 
 // 5. EVENTS DATABASE

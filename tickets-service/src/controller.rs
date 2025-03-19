@@ -1,12 +1,16 @@
 use actix_web::{
-    HttpRequest, HttpResponse, Responder, get, post,
+    HttpRequest, HttpResponse, Responder, delete, get, patch, post, put,
     web::{self, Data, Json, Path},
 };
-use common::{jwt::external::get_authenticated_user, utils::api_response::ApiResponse};
+use common::{
+    jwt::external::{get_authenticated_user, user_has_any_of_these_roles},
+    models::AuthRole,
+    utils::api_response::ApiResponse,
+};
 use mongodb::Database;
 
 use crate::{
-    model::{CreateTicketRequest, Ticket},
+    model::{CreateTicketRequest, Ticket, UpdateTicketRequest},
     service,
 };
 
@@ -17,7 +21,11 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(health_check)
         .service(get_tickets)
         .service(get_ticket_by_id)
-        .service(create_ticket);
+        .service(create_ticket)
+        .service(update_ticket_by_id)
+        .service(cancel_ticket_by_id)
+        .service(refund_ticket_by_id)
+        .service(delete_ticket_by_id);
 
     cfg.service(scope);
 }
@@ -55,7 +63,7 @@ async fn get_tickets(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
-#[get("/{id}")]
+#[get("/{ticket_id}")]
 async fn get_ticket_by_id(
     db: Data<Database>,
     ticket_id: Path<String>,
@@ -106,6 +114,127 @@ async fn create_ticket(
         Err(e) => {
             let response: ApiResponse<()> =
                 ApiResponse::error("Failed to create the ticket.", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[put("/{ticket_id}")]
+async fn update_ticket_by_id(
+    db: Data<Database>,
+    ticket_data: Json<UpdateTicketRequest>,
+    ticket_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    let jwt_payload = match get_authenticated_user(&req) {
+        Ok(payload) => payload,
+        Err(err_res) => return err_res,
+    };
+
+    let ticket_id = ticket_id.into_inner();
+    let ticket_data = ticket_data.into_inner();
+
+    match service::update_ticket_by_id(&db, ticket_data, jwt_payload.role, ticket_id).await {
+        Ok(ticket) => {
+            let response: ApiResponse<Ticket> =
+                ApiResponse::success("The ticket was successfully updated.", Some(ticket));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to update the ticket.", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[patch("/{ticket_id}/cancel")]
+async fn cancel_ticket_by_id(
+    db: Data<Database>,
+    ticket_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    let jwt_payload = match get_authenticated_user(&req) {
+        Ok(payload) => payload,
+        Err(err_res) => return err_res,
+    };
+
+    let ticket_id = ticket_id.into_inner();
+
+    match service::cancel_ticket_by_id(&db, ticket_id, jwt_payload.role, jwt_payload.user_id).await
+    {
+        Ok(ticket) => {
+            let response: ApiResponse<Ticket> =
+                ApiResponse::success("The ticket was successfully cancelled.", Some(ticket));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to cancel the ticket.", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[patch("/{ticket_id}/refund")]
+async fn refund_ticket_by_id(
+    db: Data<Database>,
+    ticket_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    let jwt_payload = match get_authenticated_user(&req) {
+        Ok(payload) => payload,
+        Err(err_res) => return err_res,
+    };
+
+    let ticket_id = ticket_id.into_inner();
+
+    match service::refund_ticket_by_id(&db, ticket_id, jwt_payload.role, jwt_payload.user_id).await
+    {
+        Ok(ticket) => {
+            let response: ApiResponse<Ticket> =
+                ApiResponse::success("The ticket was successfully refunded.", Some(ticket));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to refund the ticket.", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[delete("/{ticket_id}")]
+async fn delete_ticket_by_id(
+    db: Data<Database>,
+    ticket_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    let required_roles = &[AuthRole::Admin];
+    match user_has_any_of_these_roles(&req, required_roles) {
+        Ok(claims) => claims,
+        Err(err_res) => return err_res,
+    };
+
+    let ticket_id = ticket_id.into_inner();
+
+    match service::delete_ticket_by_id(&db, ticket_id).await {
+        Ok(ticket) => {
+            let response: ApiResponse<Ticket> =
+                ApiResponse::success("The ticket was successfully deleted.", Some(ticket));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to delete the ticket.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }

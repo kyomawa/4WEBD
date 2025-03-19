@@ -2,11 +2,10 @@ use common::utils::utils::{
     deserialize_datetime_from_any, serialize_option_object_id_as_hex_string, trim,
     validate_date_not_in_past,
 };
+use mongodb::bson::serde_helpers::serialize_bson_datetime_as_rfc3339_string;
 use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
-
-use mongodb::bson::serde_helpers::serialize_bson_datetime_as_rfc3339_string;
 
 // =============================================================================================================================
 
@@ -29,6 +28,9 @@ pub struct Event {
     pub date: DateTime,
     pub capacity: u32,
     pub remaining_seats: u32,
+
+    pub price: u32,
+
     #[serde(
         deserialize_with = "deserialize_datetime_from_any",
         serialize_with = "serialize_bson_datetime_as_rfc3339_string"
@@ -42,7 +44,6 @@ pub struct Event {
 // =============================================================================================================================
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
-#[validate(schema(function = "validate_create_event", skip_on_field_errors = false))]
 pub struct CreateEventRequest {
     #[serde(deserialize_with = "trim")]
     #[validate(length(
@@ -66,7 +67,8 @@ pub struct CreateEventRequest {
     #[validate(range(min = 25, message = "Capacity must be at least 25"))]
     pub capacity: u32,
 
-    pub remaining_seats: u32,
+    #[validate(range(min = 1, message = "Price must be atleast one."))]
+    pub price: u32,
 }
 
 // =============================================================================================================================
@@ -97,6 +99,9 @@ pub struct UpdateEventRequest {
     pub capacity: u32,
 
     pub remaining_seats: u32,
+
+    #[validate(range(min = 1, message = "Price must be atleast one."))]
+    pub price: u32,
 }
 
 // =============================================================================================================================
@@ -107,15 +112,6 @@ pub struct UpdateSeatsRequest {
 }
 
 // =============================================================================================================================
-
-fn validate_create_event(req: &CreateEventRequest) -> Result<(), ValidationError> {
-    if req.remaining_seats > req.capacity {
-        let mut err = ValidationError::new("remaining_seats_exceeds_capacity");
-        err.message = Some("Remaining seats cannot exceed capacity.".into());
-        return Err(err);
-    }
-    Ok(())
-}
 
 fn validate_update_event(req: &UpdateEventRequest) -> Result<(), ValidationError> {
     if req.remaining_seats > req.capacity {

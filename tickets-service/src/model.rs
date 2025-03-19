@@ -51,9 +51,6 @@ pub struct CreateTicketRequest {
     #[validate(range(min = 1, message = "Seat number must be at least one."))]
     pub seat_number: u32,
 
-    #[validate(range(min = 1, message = "Price must be atleast one."))]
-    pub price: u32,
-
     #[serde(rename = "event_id")]
     pub event_id: ObjectId,
 
@@ -68,11 +65,7 @@ pub struct UpdateTicketRequest {
     #[validate(range(min = 1, message = "Seat number must be at least one."))]
     pub seat_number: u32,
 
-    // Option because only admin can update status
     pub status: Option<TicketStatus>,
-
-    #[validate(range(min = 1, message = "Price must be atleast one."))]
-    pub price: u32,
 }
 
 // =============================================================================================================================
@@ -93,7 +86,14 @@ pub struct GetEventInternalResponse {
 
     pub capacity: u32,
     pub remaining_seats: u32,
+
+    #[serde(
+        deserialize_with = "deserialize_datetime_from_any",
+        serialize_with = "serialize_bson_datetime_as_rfc3339_string"
+    )]
     pub created_at: DateTime,
+
+    pub price: u32,
 
     #[serde(rename = "creator_id")]
     pub creator_id: ObjectId,
@@ -112,6 +112,7 @@ pub struct UpdateEventRemainingSeatsInternalResponse {
     pub capacity: u32,
     pub remaining_seats: u32,
     pub created_at: DateTime,
+    pub price: u32,
 
     #[serde(rename = "creator_id")]
     pub creator_id: ObjectId,

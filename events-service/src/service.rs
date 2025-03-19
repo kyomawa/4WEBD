@@ -52,9 +52,10 @@ pub async fn create_event(
         title: event.title,
         description: event.description,
         capacity: event.capacity,
-        remaining_seats: event.remaining_seats,
+        remaining_seats: event.capacity,
         creator_id,
         created_at: DateTime::now(),
+        price: event.price,
         date: event.date,
     };
 
