@@ -365,6 +365,7 @@ dependencies = [
  "ahash",
  "base64 0.22.1",
  "bitvec",
+ "chrono",
  "getrandom 0.2.15",
  "getrandom 0.3.1",
  "hex",
@@ -437,6 +438,7 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "bson",
  "chrono",
  "jsonwebtoken",
  "lazy_static",
@@ -445,6 +447,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "validator",
 ]
 
 [[package]]

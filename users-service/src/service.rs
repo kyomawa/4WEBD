@@ -4,6 +4,7 @@ use futures_util::TryStreamExt;
 use mongodb::{
     Collection, Cursor, Database,
     bson::{doc, oid::ObjectId, to_document},
+    options::ReturnDocument,
 };
 use validator::Validate;
 
@@ -87,6 +88,7 @@ pub async fn update_user_by_id(
 
     match collection
         .find_one_and_update(doc! { "_id": id }, doc! { "$set": update_doc })
+        .return_document(ReturnDocument::After)
         .await?
     {
         Some(user) => Ok(user),

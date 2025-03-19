@@ -91,6 +91,27 @@ pub async fn update_event_by_id(
 
 // =============================================================================================================================
 
+pub async fn update_event_seats_by_id(
+    db: &Database,
+    event_id: String,
+    delta: i32,
+) -> Result<Event, Box<dyn std::error::Error>> {
+    let event_id = ObjectId::parse_str(&event_id)?;
+    let collection: Collection<Event> = db.collection(COLLECTION_NAME);
+    let update_doc = doc! { "$inc": { "remaining_seats": delta } };
+
+    match collection
+        .find_one_and_update(doc! { "_id": event_id }, update_doc)
+        .return_document(ReturnDocument::After)
+        .await?
+    {
+        Some(event) => Ok(event),
+        None => Err("No event found with the provided id.".into()),
+    }
+}
+
+// =============================================================================================================================
+
 pub async fn delete_event_by_id(
     db: &Database,
     creator_id: String,

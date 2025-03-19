@@ -1,5 +1,6 @@
 use common::utils::utils::{
     deserialize_datetime_from_any, serialize_option_object_id_as_hex_string, trim,
+    validate_date_not_in_past,
 };
 use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
@@ -26,8 +27,8 @@ pub struct Event {
         serialize_with = "serialize_bson_datetime_as_rfc3339_string"
     )]
     pub date: DateTime,
-    pub capacity: u16,
-    pub remaining_seats: u16,
+    pub capacity: u32,
+    pub remaining_seats: u32,
     #[serde(
         deserialize_with = "deserialize_datetime_from_any",
         serialize_with = "serialize_bson_datetime_as_rfc3339_string"
@@ -63,9 +64,9 @@ pub struct CreateEventRequest {
     pub date: DateTime,
 
     #[validate(range(min = 25, message = "Capacity must be at least 25"))]
-    pub capacity: u16,
+    pub capacity: u32,
 
-    pub remaining_seats: u16,
+    pub remaining_seats: u32,
 }
 
 // =============================================================================================================================
@@ -93,25 +94,19 @@ pub struct UpdateEventRequest {
     pub date: DateTime,
 
     #[validate(range(min = 25, message = "Capacity must be at least 25"))]
-    pub capacity: u16,
+    pub capacity: u32,
 
-    pub remaining_seats: u16,
+    pub remaining_seats: u32,
 }
 
 // =============================================================================================================================
 
-fn validate_date_not_in_past(date: &DateTime) -> Result<(), ValidationError> {
-    let now = chrono::Utc::now();
-    let event_date_chrono = date.to_chrono();
-
-    if event_date_chrono < now {
-        let mut err = ValidationError::new("date_in_past");
-        err.message = Some("The event date cannot be in the past.".into());
-        return Err(err);
-    }
-
-    Ok(())
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct UpdateSeatsRequest {
+    pub delta: i32,
 }
+
+// =============================================================================================================================
 
 fn validate_create_event(req: &CreateEventRequest) -> Result<(), ValidationError> {
     if req.remaining_seats > req.capacity {

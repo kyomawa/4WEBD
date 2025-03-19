@@ -7,6 +7,7 @@ use serde::de::{self, Deserializer, Visitor};
 use serde::{self, Deserialize, Serializer};
 use std::fmt;
 use std::time::{Duration, UNIX_EPOCH};
+use validator::ValidationError;
 
 // =============================================================================================================================
 
@@ -92,6 +93,21 @@ where
     }
 
     deserializer.deserialize_any(DateTimeVisitor)
+}
+
+// =============================================================================================================================
+
+pub fn validate_date_not_in_past(date: &DateTime) -> Result<(), ValidationError> {
+    let now = chrono::Utc::now();
+    let event_date_chrono = date.to_chrono();
+
+    if event_date_chrono < now {
+        let mut err = ValidationError::new("date_in_past");
+        err.message = Some("The date cannot be in the past.".into());
+        return Err(err);
+    }
+
+    Ok(())
 }
 
 // =============================================================================================================================

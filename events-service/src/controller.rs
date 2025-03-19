@@ -1,14 +1,16 @@
 use actix_web::{
-    HttpRequest, HttpResponse, Responder, delete, get, post, put,
+    HttpRequest, HttpResponse, Responder, delete, get, patch, post, put,
     web::{self, Data, Json, Path},
 };
 use common::{
-    jwt::external::user_has_any_of_these_roles, models::AuthRole, utils::api_response::ApiResponse,
+    jwt::{external::user_has_any_of_these_roles, internal::authenticate_internal_request},
+    models::AuthRole,
+    utils::api_response::ApiResponse,
 };
 use mongodb::Database;
 
 use crate::{
-    model::{CreateEventRequest, Event, UpdateEventRequest},
+    model::{CreateEventRequest, Event, UpdateEventRequest, UpdateSeatsRequest},
     service,
 };
 
@@ -21,6 +23,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_event_by_id)
         .service(create_event)
         .service(update_event_by_id)
+        .service(update_event_seats_by_id)
         .service(delete_event_by_id);
 
     cfg.service(scope);
@@ -129,6 +132,37 @@ async fn update_event_by_id(
         Err(e) => {
             let response: ApiResponse<()> =
                 ApiResponse::error("Failed to update the event", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[patch("/{id}/update-seats")]
+async fn update_event_seats_by_id(
+    db: web::Data<Database>,
+    id: web::Path<String>,
+    payload: web::Json<UpdateSeatsRequest>,
+    req: HttpRequest,
+) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(claims) => claims,
+        Err(err_res) => return err_res,
+    };
+
+    let event_id = id.into_inner();
+    let delta = payload.delta;
+
+    match service::update_event_seats_by_id(&db, event_id, delta).await {
+        Ok(event) => {
+            let response: ApiResponse<Event> =
+                ApiResponse::success("Remaining seats successfully updated.", Some(event));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to update remaining seats.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }
