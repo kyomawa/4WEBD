@@ -85,8 +85,27 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_TICKETS_SERVICE: ${DATABASE_URL_TICKETS_SERVICE}
+
+  notifications-service:
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+    container_name: notifications-service
+    volumes:
+      - ./notifications-service:/usr/src/app/notifications-service
+      - ./common:/usr/src/app/common
+      - notifications-target-volume:/usr/src/app/notifications-service/target
+    depends_on:
+      - database
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_NOTIFICATIONS_SERVICE: ${DATABASE_URL_NOTIFICATIONS_SERVICE}
+
+
 volumes:
   auth-target-volume:
   users-target-volume:
   events-target-volume:
   tickets-target-volume:
+  notifications-target-volume:
