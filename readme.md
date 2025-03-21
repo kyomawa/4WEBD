@@ -2,6 +2,16 @@
 
 This project is a work in progress. It is being developed as a microservices-based SaaS system for managing concerts and event ticketing.
 
+Dev :
+``` bash
+docker compose up
+```
+
+Prod : 
+``` bash
+docker-compose -f docker-compose.prod.yml up --build
+```
+
 ## Project Overview
 
 The system is designed to handle ticketing for events ranging from small local shows to large international tours. It is built using a microservices architecture where each service is responsible for a specific domain:
