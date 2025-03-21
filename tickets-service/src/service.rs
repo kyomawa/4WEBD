@@ -1,4 +1,6 @@
 use common::jwt::internal::encode_internal_jwt;
+use common::models::TriggerNotificationRequest;
+use common::utils::utils::trigger_notification;
 use common::{models::AuthRole, utils::api_response::ApiResponse};
 use futures_util::TryStreamExt;
 use mongodb::bson::oid::ObjectId;
@@ -115,6 +117,18 @@ pub async fn create_ticket(
 
     update_event_remaining_seats_by_id_request(ticket.event_id, -1).await?;
 
+    let notification_data = TriggerNotificationRequest {
+        message: String::from(format!(
+            "You just bought a ticket for the event: {}.",
+            event.title
+        )),
+        user_id: ticket.user_id.clone(),
+    };
+
+    if let Err(e) = trigger_notification(notification_data).await {
+        return Err(e);
+    }
+
     Ok(ticket)
 }
 
@@ -148,7 +162,21 @@ pub async fn update_ticket_by_id(
         .return_document(ReturnDocument::After)
         .await?
     {
-        Some(ticket) => Ok(ticket),
+        Some(ticket) => {
+            let notification_data = TriggerNotificationRequest {
+                message: String::from(format!(
+                    "Your ticket informations have changed :\n Status: {:?}\n Seat Number: {:?}.",
+                    ticket.status, ticket.seat_number
+                )),
+                user_id: ticket.user_id.clone(),
+            };
+
+            if let Err(e) = trigger_notification(notification_data).await {
+                return Err(e);
+            }
+
+            Ok(ticket)
+        }
         None => Err("No ticket with this id was found.".into()),
     }
 }
@@ -184,6 +212,16 @@ pub async fn cancel_ticket_by_id(
     {
         Some(ticket) => {
             update_event_remaining_seats_by_id_request(ticket.event_id, 1).await?;
+
+            let notification_data = TriggerNotificationRequest {
+                message: String::from("Your ticket was successfully cancelled."),
+                user_id: ticket.user_id.clone(),
+            };
+
+            if let Err(e) = trigger_notification(notification_data).await {
+                return Err(e);
+            }
+
             Ok(ticket)
         }
         None => Err("No ticket found with provided id or unauthorized.".into()),
@@ -220,6 +258,15 @@ pub async fn refund_ticket_by_id(
         .await?
     {
         Some(ticket) => {
+            let notification_data = TriggerNotificationRequest {
+                message: String::from("Your ticket will be refund soon."),
+                user_id: ticket.user_id.clone(),
+            };
+
+            if let Err(e) = trigger_notification(notification_data).await {
+                return Err(e);
+            }
+
             update_event_remaining_seats_by_id_request(ticket.event_id, 1).await?;
             Ok(ticket)
         }

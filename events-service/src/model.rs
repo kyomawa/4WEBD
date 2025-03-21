@@ -54,7 +54,11 @@ pub struct CreateEventRequest {
     pub title: String,
 
     #[serde(deserialize_with = "trim")]
-    #[validate(length(min = 10, message = "Description must be at least 10 characters"))]
+    #[validate(length(
+        min = 10,
+        max = 500,
+        message = "Description must be between 10 and 500 characters"
+    ))]
     pub description: String,
 
     #[serde(
@@ -85,7 +89,11 @@ pub struct UpdateEventRequest {
     pub title: String,
 
     #[serde(deserialize_with = "trim")]
-    #[validate(length(min = 10, message = "Description must be at least 10 characters"))]
+    #[validate(length(
+        min = 10,
+        max = 500,
+        message = "Description must be between 10 and 500 characters"
+    ))]
     pub description: String,
 
     #[serde(

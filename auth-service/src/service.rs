@@ -1,8 +1,11 @@
 use bcrypt::{DEFAULT_COST, hash, verify};
 use common::{
     jwt::{external::encode_external_jwt, internal::encode_internal_jwt},
-    models::AuthRole,
-    utils::api_response::{ApiResponse, ObjectIdWrapper},
+    models::{AuthRole, TriggerNotificationRequest},
+    utils::{
+        api_response::{ApiResponse, ObjectIdWrapper},
+        utils::trigger_notification,
+    },
 };
 use mongodb::{
     Collection, Database,
@@ -68,6 +71,15 @@ pub async fn register(
     let result = collection.insert_one(&credential).await?;
 
     credential.id = result.inserted_id.as_object_id();
+
+    let notification_data = TriggerNotificationRequest {
+        message: String::from("Welcome to 4WEBD."),
+        user_id: credential.user_id.clone(),
+    };
+
+    if let Err(e) = trigger_notification(notification_data).await {
+        return Err(e);
+    }
 
     Ok(credential)
 }

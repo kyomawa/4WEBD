@@ -5,9 +5,15 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::de::{self, Deserializer, Visitor};
 use serde::{self, Deserialize, Serializer};
+use serde_json::json;
 use std::fmt;
 use std::time::{Duration, UNIX_EPOCH};
 use validator::ValidationError;
+
+use crate::jwt::internal::encode_internal_jwt;
+use crate::models::{TriggerNotificationRequest, TriggerNotificationResponse};
+
+use super::api_response::ApiResponse::{self, Error, Success};
 
 // =============================================================================================================================
 
@@ -108,6 +114,30 @@ pub fn validate_date_not_in_past(date: &DateTime) -> Result<(), ValidationError>
     }
 
     Ok(())
+}
+
+// =============================================================================================================================
+
+pub async fn trigger_notification(
+    notification_data: TriggerNotificationRequest,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let notification_data = json!(notification_data);
+
+    let internal_token = encode_internal_jwt()?;
+    let client = reqwest::Client::new();
+    let res = client
+        .post("http://notifications-service:8080/notifications")
+        .header("Authorization", format!("Bearer {}", internal_token))
+        .json(&notification_data)
+        .send()
+        .await?
+        .json::<ApiResponse<TriggerNotificationResponse>>()
+        .await?;
+
+    match res {
+        Success { .. } => Ok(()),
+        Error { error, .. } => Err(error.into()),
+    }
 }
 
 // =============================================================================================================================

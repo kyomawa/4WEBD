@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{models::AuthRole, utils::api_response::ApiResponse};
 
+use super::internal::decode_internal_jwt;
+
 // =============================================================================================================================
 
 pub static JWT_EXTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
@@ -67,6 +69,14 @@ pub fn get_external_jwt(req: &HttpRequest) -> Result<ExternalClaims, String> {
     let token = auth_str
         .strip_prefix("Bearer ")
         .ok_or("Invalid token format, expected Bearer")?;
+
+    if let Ok(internal_claims) = decode_internal_jwt(token) {
+        return Ok(ExternalClaims {
+            user_id: "internal".to_string(),
+            role: AuthRole::Admin,
+            exp: internal_claims.exp,
+        });
+    }
 
     decode_external_jwt(token)
 }
