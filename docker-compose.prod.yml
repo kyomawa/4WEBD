@@ -76,3 +76,13 @@ services:
       MAIL_HOSTNAME: ${MAIL_HOSTNAME}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+  payments-service:
+    build:
+      context: .
+      dockerfile: payments-service/Dockerfile.prod
+    container_name: payments-service
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_PAYMENTS_SERVICE: ${DATABASE_URL_PAYMENTS_SERVICE}

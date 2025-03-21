@@ -105,6 +105,22 @@ services:
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
+  payments-service:
+    build:
+      context: ./payments-service
+      dockerfile: Dockerfile
+    container_name: payments-service
+    volumes:
+      - ./payments-service:/usr/src/app/payments-service
+      - ./common:/usr/src/app/common
+      - payments-target-volume:/usr/src/app/payments-service/target
+    depends_on:
+      - database
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_PAYMENTS_SERVICE: ${DATABASE_URL_PAYMENTS_SERVICE}
+
 
 volumes:
   auth-target-volume:
@@ -112,3 +128,4 @@ volumes:
   events-target-volume:
   tickets-target-volume:
   notifications-target-volume:
+  payments-target-volume:
