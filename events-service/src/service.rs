@@ -51,6 +51,7 @@ pub async fn create_event(
         id: None,
         title: event.title,
         description: event.description,
+        location: event.location,
         capacity: event.capacity,
         remaining_seats: event.capacity,
         creator_id,

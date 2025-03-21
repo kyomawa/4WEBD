@@ -27,6 +27,7 @@ pub struct Event {
     )]
     pub date: DateTime,
     pub capacity: u32,
+    pub location: String,
     pub remaining_seats: u32,
 
     pub price: u32,
@@ -60,6 +61,14 @@ pub struct CreateEventRequest {
         message = "Description must be between 10 and 500 characters"
     ))]
     pub description: String,
+
+    #[serde(deserialize_with = "trim")]
+    #[validate(length(
+        min = 2,
+        max = 500,
+        message = "Location must be between 2 and 75 characters"
+    ))]
+    pub location: String,
 
     #[serde(
         serialize_with = "serialize_bson_datetime_as_rfc3339_string",
@@ -95,6 +104,14 @@ pub struct UpdateEventRequest {
         message = "Description must be between 10 and 500 characters"
     ))]
     pub description: String,
+
+    #[serde(deserialize_with = "trim")]
+    #[validate(length(
+        min = 2,
+        max = 500,
+        message = "Location must be between 2 and 75 characters"
+    ))]
+    pub location: String,
 
     #[serde(
         serialize_with = "serialize_bson_datetime_as_rfc3339_string",

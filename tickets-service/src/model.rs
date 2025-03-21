@@ -86,6 +86,7 @@ pub struct GetEventInternalResponse {
 
     pub capacity: u32,
     pub remaining_seats: u32,
+    pub location: String,
 
     #[serde(
         deserialize_with = "deserialize_datetime_from_any",
@@ -110,6 +111,7 @@ pub struct UpdateEventRemainingSeatsInternalResponse {
     pub description: String,
     pub date: DateTime,
     pub capacity: u32,
+    pub location: String,
     pub remaining_seats: u32,
     pub created_at: DateTime,
     pub price: u32,
