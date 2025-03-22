@@ -128,7 +128,7 @@ pub async fn check_notifications_and_try_to_send_mail(
     for notification in pending_notifications {
         let api_response = client
             .get(format!(
-                "http://users-service:8080/users/{}",
+                "http://users-service:8080/api/users/{}",
                 notification.user_id
             ))
             .header("Authorization", format!("Bearer {}", internal_token))

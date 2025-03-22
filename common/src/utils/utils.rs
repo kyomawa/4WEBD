@@ -126,7 +126,7 @@ pub async fn trigger_notification(
     let internal_token = encode_internal_jwt()?;
     let client = reqwest::Client::new();
     let res = client
-        .post("http://notifications-service:8080/notifications")
+        .post("http://notifications-service:8080/api/notifications")
         .header("Authorization", format!("Bearer {}", internal_token))
         .json(&notification_data)
         .send()

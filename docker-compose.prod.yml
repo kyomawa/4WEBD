@@ -12,6 +12,7 @@ services:
       - events-service
       - tickets-service
       - notifications-service
+      - payments-service
 
   database:
     image: mongo:latest

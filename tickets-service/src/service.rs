@@ -72,7 +72,7 @@ pub async fn create_ticket(
     ticket_data.validate()?;
 
     let res: ApiResponse<GetEventInternalResponse> = reqwest::get(format!(
-        "http://events-service:8080/events/{}",
+        "http://events-service:8080/api/events/{}",
         &ticket_data.event_id
     ))
     .await?
@@ -305,7 +305,7 @@ async fn update_event_remaining_seats_by_id_request(
 
     client
         .patch(format!(
-            "http://events-service:8080/events/{}/update-seats",
+            "http://events-service:8080/api/events/{}/update-seats",
             event_id.to_hex()
         ))
         .header("Authorization", format!("Bearer {}", internal_token))

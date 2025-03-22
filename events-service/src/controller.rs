@@ -17,7 +17,7 @@ use crate::{
 // =============================================================================================================================
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    let scope = web::scope("/events")
+    let scope = web::scope("/api/events")
         .service(health_check)
         .service(get_events)
         .service(get_event_by_id)

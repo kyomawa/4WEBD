@@ -40,7 +40,7 @@ pub async fn register(
 
     let internal_token = encode_internal_jwt()?;
     let res: ApiResponse<CreateUserInternalResponse> = client
-        .post("http://users-service:8080/users")
+        .post("http://users-service:8080/api/users")
         .header("Authorization", format!("Bearer {}", internal_token))
         .json(&user)
         .send()
@@ -95,7 +95,7 @@ pub async fn login(
 
     let internal_token = encode_internal_jwt()?;
     let res: ApiResponse<ObjectIdWrapper> = client
-        .get("http://users-service:8080/users/id-by-email")
+        .get("http://users-service:8080/api/users/id-by-email")
         .header("Authorization", format!("Bearer {}", internal_token))
         .json(&email)
         .send()
