@@ -1,16 +1,19 @@
 use actix_web::{
-    HttpRequest, HttpResponse, Responder, delete, get, patch, post, put,
+    HttpRequest, HttpResponse, Responder, delete, get, patch, post,
     web::{self, Data, Json, Path},
 };
 use common::{
-    jwt::external::{get_authenticated_user, user_has_any_of_these_roles},
+    jwt::{
+        external::{get_authenticated_user, user_has_any_of_these_roles},
+        internal::authenticate_internal_request,
+    },
     models::AuthRole,
     utils::api_response::ApiResponse,
 };
 use mongodb::Database;
 
 use crate::{
-    model::{CreateTicketRequest, Ticket, UpdateTicketRequest},
+    model::{CreateTicketRequest, Ticket, UpdateTicketSeatNumberByIdRequest},
     service,
 };
 
@@ -22,7 +25,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_tickets)
         .service(get_ticket_by_id)
         .service(create_ticket)
-        .service(update_ticket_by_id)
+        .service(update_ticket_seat_number_by_id)
+        .service(active_ticket_by_id)
         .service(cancel_ticket_by_id)
         .service(refund_ticket_by_id)
         .service(delete_ticket_by_id);
@@ -121,10 +125,10 @@ async fn create_ticket(
 
 // =============================================================================================================================
 
-#[put("/{ticket_id}")]
-async fn update_ticket_by_id(
+#[patch("/{ticket_id}/seat")]
+async fn update_ticket_seat_number_by_id(
     db: Data<Database>,
-    ticket_data: Json<UpdateTicketRequest>,
+    ticket_data: Json<UpdateTicketSeatNumberByIdRequest>,
     ticket_id: Path<String>,
     req: HttpRequest,
 ) -> impl Responder {
@@ -136,15 +140,54 @@ async fn update_ticket_by_id(
     let ticket_id = ticket_id.into_inner();
     let ticket_data = ticket_data.into_inner();
 
-    match service::update_ticket_by_id(&db, ticket_data, jwt_payload.role, ticket_id).await {
+    match service::update_ticket_seat_number_by_id(
+        &db,
+        ticket_data,
+        jwt_payload.user_id,
+        jwt_payload.role,
+        ticket_id,
+    )
+    .await
+    {
         Ok(ticket) => {
-            let response: ApiResponse<Ticket> =
-                ApiResponse::success("The ticket was successfully updated.", Some(ticket));
+            let response: ApiResponse<Ticket> = ApiResponse::success(
+                "The ticket seat number was successfully updated.",
+                Some(ticket),
+            );
             HttpResponse::Ok().json(response)
         }
         Err(e) => {
             let response: ApiResponse<()> =
-                ApiResponse::error("Failed to update the ticket.", e.to_string());
+                ApiResponse::error("Failed to update the ticket seat number.", e.to_string());
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[patch("/{ticket_id}/active")]
+async fn active_ticket_by_id(
+    db: Data<Database>,
+    ticket_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(claims) => claims,
+        Err(err_res) => return err_res,
+    };
+
+    let ticket_id = ticket_id.into_inner();
+
+    match service::active_ticket_by_id(&db, ticket_id).await {
+        Ok(ticket) => {
+            let response: ApiResponse<Ticket> =
+                ApiResponse::success("The ticket was successfully activated.", Some(ticket));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> =
+                ApiResponse::error("Failed to activate the ticket.", e.to_string());
             HttpResponse::InternalServerError().json(response)
         }
     }

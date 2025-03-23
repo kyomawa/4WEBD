@@ -1,6 +1,7 @@
 use std::env;
 
 use actix_web::{HttpRequest, HttpResponse, http::header};
+use bson::oid::ObjectId;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use once_cell::sync::Lazy;
@@ -72,7 +73,7 @@ pub fn get_external_jwt(req: &HttpRequest) -> Result<ExternalClaims, String> {
 
     if let Ok(internal_claims) = decode_internal_jwt(token) {
         return Ok(ExternalClaims {
-            user_id: "internal".to_string(),
+            user_id: ObjectId::new().to_hex(),
             role: AuthRole::Admin,
             exp: internal_claims.exp,
         });

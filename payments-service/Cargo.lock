@@ -89,6 +89,7 @@ version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24eda4e2a6e042aa4e55ac438a2ae052d3b5da0ecf83d7411e1a368946925208"
 dependencies = [
+ "actix-macros",
  "futures-core",
  "tokio",
 ]
@@ -1765,6 +1766,7 @@ dependencies = [
 name = "payments-service"
 version = "0.1.0"
 dependencies = [
+ "actix-rt",
  "actix-web",
  "common",
  "dotenv",
@@ -1773,6 +1775,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "tokio_schedule",
  "validator",
 ]
 
@@ -2692,6 +2695,16 @@ dependencies = [
  "futures-io",
  "futures-sink",
  "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
+name = "tokio_schedule"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61c291c554da3518d6ef69c76ea35aabc78f736185a16b6017f6d1c224dac2e0"
+dependencies = [
+ "chrono",
  "tokio",
 ]
 

@@ -30,6 +30,12 @@ pub enum TriggerNotificationStatus {
     Failed,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum PaymentCurrency {
+    Eur,
+    Usd,
+}
+
 // =============================================================================================================================
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
