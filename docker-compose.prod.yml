@@ -13,6 +13,7 @@ services:
       - tickets-service
       - notifications-service
       - payments-service
+      - backups-service
 
   database:
     image: mongo:latest
@@ -87,3 +88,13 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_PAYMENTS_SERVICE: ${DATABASE_URL_PAYMENTS_SERVICE}
+
+  backups-service:
+    build:
+      context: .
+      dockerfile: backups-service/Dockerfile.prod
+    container_name: backups-service
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_BACKUPS_SERVICE: ${DATABASE_URL_BACKUPS_SERVICE}
