@@ -103,6 +103,83 @@ where
 
 // =============================================================================================================================
 
+pub fn deserialize_option_datetime_from_any<'de, D>(
+    deserializer: D,
+) -> Result<Option<DateTime>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct OptionDateTimeVisitor;
+
+    impl<'de> de::Visitor<'de> for OptionDateTimeVisitor {
+        type Value = Option<DateTime>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("an optional BSON DateTime, an ISO8601 string, or null")
+        }
+
+        fn visit_unit<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(None)
+        }
+
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserialize_datetime_from_any(deserializer).map(Some)
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            let chrono_dt = chrono::DateTime::parse_from_rfc3339(value).map_err(E::custom)?;
+            let ts = chrono_dt.with_timezone(&Utc).timestamp_millis();
+            let system_time = UNIX_EPOCH + Duration::from_millis(ts as u64);
+            Ok(Some(DateTime::from_system_time(system_time)))
+        }
+
+        fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(Some(DateTime::from_millis(value)))
+        }
+    }
+
+    deserializer.deserialize_any(OptionDateTimeVisitor)
+}
+
+// =============================================================================================================================
+
+pub fn serialize_option_datetime_as_rfc3339_string<S>(
+    date: &Option<DateTime>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match date {
+        Some(dt) => {
+            let s = dt.try_to_rfc3339_string().unwrap();
+            serializer.serialize_str(&s)
+        }
+        None => serializer.serialize_none(),
+    }
+}
+
+// =============================================================================================================================
+
 pub fn validate_date_not_in_past(date: &DateTime) -> Result<(), ValidationError> {
     let now = chrono::Utc::now();
     let event_date_chrono = date.to_chrono();

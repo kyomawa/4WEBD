@@ -2,7 +2,6 @@ print("⚡ Script: Creating indexes for each database...");
 
 // 1. AUTH DATABASE
 db = db.getSiblingDB("auth-service");
-// Get collection auth first to avoid conflict because db.auth is used by mongodb
 db.getCollection("auth").createIndex(
   { user_id: 1 },
   { unique: true }
@@ -47,3 +46,7 @@ db.payments.createIndex({ ticket_id: 1 });
 db.payments.createIndex({ event_id: 1 });
 db.payments.createIndex({ status: 1 });
 db.payments.createIndex({ created_at: 1 });
+
+// 7 BACKUPS DATABASE
+db.backups.createIndex({ service_name: 1, date: -1 });
+db.backups.createIndex({ status: 1 });

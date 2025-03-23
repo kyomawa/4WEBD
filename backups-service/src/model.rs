@@ -1,11 +1,11 @@
 use common::utils::utils::{
-    deserialize_datetime_from_any, serialize_option_object_id_as_hex_string,
+    deserialize_datetime_from_any, deserialize_option_datetime_from_any,
+    serialize_option_datetime_as_rfc3339_string, serialize_option_object_id_as_hex_string,
 };
 use mongodb::bson::{
     DateTime, oid::ObjectId, serde_helpers::serialize_bson_datetime_as_rfc3339_string,
 };
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 
 // =============================================================================================================================
 
@@ -43,11 +43,17 @@ pub struct Backup {
         deserialize_with = "deserialize_datetime_from_any",
         serialize_with = "serialize_bson_datetime_as_rfc3339_string"
     )]
-    pub date: DateTime,
+    pub created_at: DateTime,
+
+    #[serde(
+        deserialize_with = "deserialize_option_datetime_from_any",
+        serialize_with = "serialize_option_datetime_as_rfc3339_string"
+    )]
+    pub finished_at: Option<DateTime>,
 
     pub service_name: BackupService,
     pub status: BackupStatus,
-    pub data: Vec<serde_json::Value>,
+    pub data: Option<Vec<serde_json::Value>>,
 }
 
 // =============================================================================================================================
@@ -59,19 +65,9 @@ pub struct GetLastBackupByServiceName {
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateBackup {
-    #[serde(
-        deserialize_with = "deserialize_datetime_from_any",
-        serialize_with = "serialize_bson_datetime_as_rfc3339_string"
-    )]
-    pub date: DateTime,
-
     pub service_name: BackupService,
-
-    pub status: BackupStatus,
-
-    pub data: Vec<serde_json::Value>,
 }
 
 // =============================================================================================================================
