@@ -1,6 +1,6 @@
 use actix_web::{App, HttpServer, web};
 use controller::config;
-// use cron_jobs::cron_jobs;
+use cron_jobs::cron_jobs;
 use extractor::deserialize_error_extractor;
 
 mod controller;
@@ -19,11 +19,11 @@ async fn main() -> std::io::Result<()> {
     let db = db::init_db()
         .await
         .expect("❌ Failed to connect to database");
-    // let db_for_cron = db.clone();
+    let db_for_cron = db.clone();
 
-    // actix_rt::spawn(async move {
-    //     cron_jobs(db_for_cron).await;
-    // });
+    actix_rt::spawn(async move {
+        cron_jobs(db_for_cron).await;
+    });
 
     HttpServer::new(move || {
         App::new()
@@ -35,7 +35,5 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-
-// =============================================================================================================================
 
 // =============================================================================================================================

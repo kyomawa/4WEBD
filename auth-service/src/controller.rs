@@ -3,7 +3,10 @@ use actix_web::{
     web::{self, Data, Json},
 };
 use common::{
-    jwt::external::{ExternalClaims, get_authenticated_user},
+    jwt::{
+        external::{ExternalClaims, get_authenticated_user},
+        internal::authenticate_internal_request,
+    },
     utils::api_response::ApiResponse,
 };
 use mongodb::Database;
@@ -18,6 +21,7 @@ use crate::{
 pub fn config(cfg: &mut web::ServiceConfig) {
     let scope = web::scope("/api/auth")
         .service(health_check)
+        .service(get_auths)
         .service(get_me)
         .service(register)
         .service(login);
@@ -31,6 +35,31 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Auth Service is Alive", None);
     HttpResponse::Ok().json(response)
+}
+
+// =============================================================================================================================
+
+#[get("")]
+async fn get_auths(db: Data<Database>, req: HttpRequest) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(jwt_payload) => jwt_payload,
+        Err(err_res) => return err_res,
+    };
+
+    match service::get_auths(&db).await {
+        Ok(auths) => {
+            let response: ApiResponse<Vec<Auth>> =
+                ApiResponse::success("All credentials were successfully retrieved.", Some(auths));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> = ApiResponse::error(
+                "An error occured during the credentials retrieving.",
+                e.to_string(),
+            );
+            HttpResponse::InternalServerError().json(response)
+        }
+    }
 }
 
 // =============================================================================================================================

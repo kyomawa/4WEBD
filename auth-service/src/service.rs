@@ -7,6 +7,7 @@ use common::{
         utils::trigger_notification,
     },
 };
+use futures::TryStreamExt;
 use mongodb::{
     Collection, Database,
     bson::{doc, oid::ObjectId},
@@ -22,6 +23,16 @@ use crate::model::{
 // =============================================================================================================================
 
 const COLLECTION_NAME: &str = "auth";
+
+// =============================================================================================================================
+
+pub async fn get_auths(db: &Database) -> Result<Vec<Auth>, Box<dyn std::error::Error>> {
+    let collection: Collection<Auth> = db.collection(COLLECTION_NAME);
+    let cursor = collection.find(doc! {}).await?;
+    let auths = cursor.try_collect().await?;
+
+    Ok(auths)
+}
 
 // =============================================================================================================================
 
