@@ -119,13 +119,13 @@ pub async fn process_pending_backups(db: &Database) -> Result<(), Box<dyn Error 
             .await
         {
             Ok(_) => {
-                let update_completed = doc! { "$set": { "status": "Completed" } };
+                let update_completed = doc! { "$set": { "status": "Completed", "finished_at": DateTime::now() } };
                 collection
                     .update_one(doc! { "_id": &backup.id }, update_completed)
                     .await?;
             }
             Err(e) => {
-                let update_failed = doc! { "$set": { "status": "Failed" } };
+                let update_failed = doc! { "$set": { "status": "Failed", "finished_at": DateTime::now() } };
                 collection
                     .update_one(doc! { "_id": &backup.id }, update_failed)
                     .await?;
