@@ -5,11 +5,13 @@ use actix_web::{
 use common::{
     jwt::{external::user_has_any_of_these_roles, internal::authenticate_internal_request},
     models::AuthRole,
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{CreateEventRequest, Event, UpdateEventRequest, UpdateSeatsRequest},
     service,
 };
@@ -24,13 +26,31 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(create_event)
         .service(update_event_by_id)
         .service(update_event_seats_by_id)
-        .service(delete_event_by_id);
+        .service(delete_event_by_id)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/events/health",
+    responses(
+        (status = 200, description = "Events Service is alive", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Events Service is alive", None);
@@ -39,6 +59,17 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/events",
+    responses(
+        (status = 200, description = "Events were successfully retrieved.", body = DocSuccessApiResponse<Vec<Event>>),
+        (status = 500, description = "An error occurred while trying to get events.", body = DocErrorApiResponse)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("")]
 async fn get_events(db: Data<Database>) -> impl Responder {
     match service::get_events(&db).await {
@@ -59,6 +90,20 @@ async fn get_events(db: Data<Database>) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/events/{id}",
+    responses(
+        (status = 200, description = "Event was successfully retrieved.", body = DocSuccessApiResponse<Event>),
+        (status = 500, description = "Failed to retrieve the event by id", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Event id")
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/{id}")]
 async fn get_event_by_id(db: Data<Database>, id: Path<String>) -> impl Responder {
     let id = id.into_inner();
@@ -78,6 +123,16 @@ async fn get_event_by_id(db: Data<Database>, id: Path<String>) -> impl Responder
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/events",
+    request_body = CreateEventRequest,
+    responses(
+        (status = 200, description = "Event was successfully created.", body = DocSuccessApiResponse<Event>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the event creation.", body = DocErrorApiResponse)
+    )
+)]
 #[post("")]
 async fn create_event(
     db: Data<Database>,
@@ -107,6 +162,19 @@ async fn create_event(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    put,
+    path = "/api/events/{id}",
+    request_body = UpdateEventRequest,
+    responses(
+        (status = 200, description = "Event was successfully updated.", body = DocSuccessApiResponse<Event>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to update the event", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Event id")
+    )
+)]
 #[put("/{id}")]
 async fn update_event_by_id(
     db: Data<Database>,
@@ -139,6 +207,19 @@ async fn update_event_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/events/{id}/update-seats",
+    request_body = UpdateSeatsRequest,
+    responses(
+        (status = 200, description = "Remaining seats successfully updated.", body = DocSuccessApiResponse<Event>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to update remaining seats.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Event id")
+    )
+)]
 #[patch("/{id}/update-seats")]
 async fn update_event_seats_by_id(
     db: web::Data<Database>,
@@ -170,6 +251,18 @@ async fn update_event_seats_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/events/{id}",
+    responses(
+        (status = 200, description = "Event was successfully deleted.", body = DocSuccessApiResponse<Event>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to delete the event.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Event id")
+    )
+)]
 #[delete("/{id}")]
 async fn delete_event_by_id(
     db: Data<Database>,
