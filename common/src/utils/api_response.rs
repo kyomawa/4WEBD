@@ -1,10 +1,11 @@
 use crate::utils::utils::deserialize_object_id;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(untagged)]
 pub enum ApiResponse<T> {
     Success {

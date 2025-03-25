@@ -11,8 +11,10 @@ use common::{
     utils::api_response::ApiResponse,
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{CreateTicketRequest, Ticket, UpdateTicketSeatNumberByIdRequest},
     service,
 };
@@ -23,6 +25,14 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     let scope = web::scope("/api/tickets")
         .service(health_check)
         .service(get_tickets)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ))
         .service(get_ticket_by_id)
         .service(create_ticket)
         .service(update_ticket_seat_number_by_id)
@@ -36,6 +46,13 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/tickets/health",
+    responses(
+        (status = 200, description = "Tickets Service is alive", body = ApiResponse<serde_json::Value>)
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Tickets Service is alive", None);
@@ -44,6 +61,14 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/tickets",
+    responses(
+        (status = 200, description = "Tickets were successfully retrieved.", body = ApiResponse<Vec<Ticket>>),
+        (status = 500, description = "Failed to retrieve tickets.")
+    )
+)]
 #[get("")]
 async fn get_tickets(db: Data<Database>, req: HttpRequest) -> impl Responder {
     let jwt_payload = match get_authenticated_user(&req) {
@@ -67,6 +92,14 @@ async fn get_tickets(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/tickets/{ticket_id}",
+    responses(
+        (status = 200, description = "Ticket was successfully retrieved.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to retrieve the ticket.")
+    )
+)]
 #[get("/{ticket_id}")]
 async fn get_ticket_by_id(
     db: Data<Database>,
@@ -96,6 +129,15 @@ async fn get_ticket_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/tickets",
+    request_body = CreateTicketRequest,
+    responses(
+        (status = 200, description = "The ticket successfully created.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to create the ticket.")
+    )
+)]
 #[post("")]
 async fn create_ticket(
     db: Data<Database>,
@@ -125,6 +167,15 @@ async fn create_ticket(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/tickets/{ticket_id}/seat",
+    request_body = UpdateTicketSeatNumberByIdRequest,
+    responses(
+        (status = 200, description = "The ticket seat number was successfully updated.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to update the ticket seat number.")
+    )
+)]
 #[patch("/{ticket_id}/seat")]
 async fn update_ticket_seat_number_by_id(
     db: Data<Database>,
@@ -166,6 +217,14 @@ async fn update_ticket_seat_number_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/tickets/{ticket_id}/active",
+    responses(
+        (status = 200, description = "The ticket was successfully activated.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to activate the ticket.")
+    )
+)]
 #[patch("/{ticket_id}/active")]
 async fn active_ticket_by_id(
     db: Data<Database>,
@@ -195,6 +254,14 @@ async fn active_ticket_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/tickets/{ticket_id}/cancel",
+    responses(
+        (status = 200, description = "The ticket was successfully cancelled.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to cancel the ticket.")
+    )
+)]
 #[patch("/{ticket_id}/cancel")]
 async fn cancel_ticket_by_id(
     db: Data<Database>,
@@ -225,6 +292,14 @@ async fn cancel_ticket_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/tickets/{ticket_id}/refund",
+    responses(
+        (status = 200, description = "The ticket was successfully refunded.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to refund the ticket.")
+    )
+)]
 #[patch("/{ticket_id}/refund")]
 async fn refund_ticket_by_id(
     db: Data<Database>,
@@ -255,6 +330,14 @@ async fn refund_ticket_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/tickets/{ticket_id}",
+    responses(
+        (status = 200, description = "The ticket was successfully deleted.", body = ApiResponse<Ticket>),
+        (status = 500, description = "Failed to delete the ticket.")
+    )
+)]
 #[delete("/{ticket_id}")]
 async fn delete_ticket_by_id(
     db: Data<Database>,

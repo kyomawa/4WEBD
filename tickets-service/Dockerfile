@@ -4,7 +4,7 @@ WORKDIR /usr/src/app/tickets-service
 
 RUN cargo install cargo-watch
 
-RUN apt-get update && apt-get install -y pkg-config libssl-dev
+RUN apt-get update && apt-get install -y pkg-config libssl-dev curl
 
 EXPOSE 8080
 
