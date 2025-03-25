@@ -6,6 +6,7 @@ use extractor::deserialize_error_extractor;
 mod controller;
 mod cron_jobs;
 mod db;
+mod doc;
 mod extractor;
 mod model;
 mod service;

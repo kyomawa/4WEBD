@@ -5,11 +5,13 @@ use actix_web::{
 use common::{
     jwt::{external::user_has_any_of_these_roles, internal::authenticate_internal_request},
     models::AuthRole,
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{Backup, CreateBackup, GetLastBackupByServiceName},
     service,
 };
@@ -22,13 +24,31 @@ pub fn config(cfg: &mut ServiceConfig) {
         .service(get_last_backup_by_service_name)
         .service(get_backup_by_id)
         .service(create_backup)
-        .service(delete_backup_by_id);
+        .service(delete_backup_by_id)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/backups/health",
+    responses(
+        (status = 200, description = "Backups Service is Alive.", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Backups Service is Alive.", None);
@@ -37,6 +57,18 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/backups/{service_name}/last",
+    responses(
+        (status = 200, description = "Backup was successfully retrieved.", body = DocSuccessApiResponse<Backup>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred while retrieving the backup.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("service_name" = String, Path, description = "Service name (Like: Events, Payments...)")
+    )
+)]
 #[get("/{service_name}/last")]
 async fn get_last_backup_by_service_name(
     db: Data<Database>,
@@ -68,6 +100,18 @@ async fn get_last_backup_by_service_name(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/backups/{id}",
+    responses(
+        (status = 200, description = "Backup was successfully retrieved.", body = DocSuccessApiResponse<Backup>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred while retrieving the backup.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Backup id")
+    )
+)]
 #[get("/{id}")]
 async fn get_backup_by_id(
     db: Data<Database>,
@@ -100,6 +144,16 @@ async fn get_backup_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/backups",
+    request_body = CreateBackup,
+    responses(
+        (status = 200, description = "Backup was successfully created.", body = DocSuccessApiResponse<Backup>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred while creating the backup.", body = DocErrorApiResponse)
+    )
+)]
 #[post("")]
 async fn create_backup(
     db: Data<Database>,
@@ -130,6 +184,18 @@ async fn create_backup(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/backups/{id}",
+    responses(
+        (status = 200, description = "Backup was successfully deleted.", body = DocSuccessApiResponse<Backup>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred while deleting the backup.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Backup id")
+    )
+)]
 #[delete("/{id}")]
 async fn delete_backup_by_id(
     db: Data<Database>,
