@@ -12,6 +12,18 @@ Prod :
 docker-compose -f docker-compose.prod.yml up --build
 ```
 
+If you want multiple instances of services you can do :
+
+Dev :
+``` bash
+docker compose up --build --scale auth-service=2 --scale users-service=2 --scale events-service=2 --scale tickets-service=2 --scale notifications-service=2 --scale payments-service=2 --scale backups-service=2
+```
+
+Prod : 
+``` bash
+docker-compose -f docker-compose.prod.yml up --build --scale auth-service=2 --scale users-service=2 --scale events-service=2 --scale tickets-service=2 --scale notifications-service=2 --scale payments-service=2 --scale backups-service=2
+```
+
 ## Project Overview
 
 The system is designed to handle ticketing for events ranging from small local shows to large international tours. It is built using a microservices architecture where each service is responsible for a specific domain:

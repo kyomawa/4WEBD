@@ -1,7 +1,6 @@
 services:
   traefik:
     image: traefik:v3.1
-    container_name: traefik
     restart: unless-stopped
     ports:
       - "80:80"        
@@ -27,7 +26,6 @@ services:
 
   database:
     image: mongo:latest
-    container_name: database
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
       interval: 10s
@@ -46,7 +44,6 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
-    container_name: auth-service
     volumes:
       - ./auth-service:/usr/src/app/auth-service
       - ./common:/usr/src/app/common
@@ -73,7 +70,6 @@ services:
     build:
       context: ./users-service
       dockerfile: Dockerfile
-    container_name: users-service
     volumes:
       - ./users-service:/usr/src/app/users-service
       - ./common:/usr/src/app/common
@@ -100,7 +96,6 @@ services:
     build:
       context: ./events-service
       dockerfile: Dockerfile
-    container_name: events-service
     volumes:
       - ./events-service:/usr/src/app/events-service
       - ./common:/usr/src/app/common
@@ -127,7 +122,6 @@ services:
     build:
       context: ./tickets-service
       dockerfile: Dockerfile
-    container_name: tickets-service
     volumes:
       - ./tickets-service:/usr/src/app/tickets-service
       - ./common:/usr/src/app/common
@@ -154,7 +148,6 @@ services:
     build:
       context: ./notifications-service
       dockerfile: Dockerfile
-    container_name: notifications-service
     volumes:
       - ./notifications-service:/usr/src/app/notifications-service
       - ./common:/usr/src/app/common
@@ -184,7 +177,6 @@ services:
     build:
       context: ./payments-service
       dockerfile: Dockerfile
-    container_name: payments-service
     volumes:
       - ./payments-service:/usr/src/app/payments-service
       - ./common:/usr/src/app/common
@@ -211,7 +203,6 @@ services:
     build:
       context: ./backups-service
       dockerfile: Dockerfile
-    container_name: backups-service
     volumes:
       - ./backups-service:/usr/src/app/backups-service
       - ./common:/usr/src/app/common

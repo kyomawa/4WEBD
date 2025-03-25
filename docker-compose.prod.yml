@@ -1,7 +1,6 @@
 services:
   traefik:
     image: traefik:v3.1
-    container_name: traefik
     restart: unless-stopped
     ports:
       - "80:80"      
@@ -22,7 +21,6 @@ services:
 
   database:
     image: mongo:latest
-    container_name: database
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -42,7 +40,6 @@ services:
     build:
       context: .
       dockerfile: auth-service/Dockerfile.prod
-    container_name: auth-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/auth/health"]
@@ -64,7 +61,6 @@ services:
     build:
       context: .
       dockerfile: users-service/Dockerfile.prod
-    container_name: users-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/users/health"]
@@ -86,7 +82,6 @@ services:
     build:
       context: .
       dockerfile: events-service/Dockerfile.prod
-    container_name: events-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/events/health"]
@@ -108,7 +103,6 @@ services:
     build:
       context: .
       dockerfile: tickets-service/Dockerfile.prod
-    container_name: tickets-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/tickets/health"]
@@ -130,7 +124,6 @@ services:
     build:
       context: .
       dockerfile: notifications-service/Dockerfile.prod
-    container_name: notifications-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/notifications/health"]
@@ -155,7 +148,6 @@ services:
     build:
       context: .
       dockerfile: payments-service/Dockerfile.prod
-    container_name: payments-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/payments/health"]
@@ -177,7 +169,6 @@ services:
     build:
       context: .
       dockerfile: backups-service/Dockerfile.prod
-    container_name: backups-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/backups/health"]
