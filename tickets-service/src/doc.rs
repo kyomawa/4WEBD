@@ -27,7 +27,7 @@ use utoipa::{
     ),
     security(
         (),
-        ("my_auth" = ["read:items", "edit:items"]),
+        ("public_routes" = ["read:items", "edit:items"]),
         ("bearerAuth" = []),
     ),
     modifiers(&SecurityAddon),

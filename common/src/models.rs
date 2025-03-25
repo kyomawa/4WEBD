@@ -10,7 +10,7 @@ use crate::utils::utils::{
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, ToSchema)]
 pub enum AuthRole {
     User,
     EventCreator,

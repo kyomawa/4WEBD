@@ -291,6 +291,8 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "utoipa",
+ "utoipa-swagger-ui",
  "validator",
 ]
 

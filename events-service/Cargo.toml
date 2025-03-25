@@ -13,4 +13,6 @@ validator = { version = "0.20.0", features = ["derive"]}
 chrono = "0.4.40"
 dotenv = "0.15.0"
 futures-util = "0.3.31"
+utoipa = { version = "5.3.1", features = ["actix_extras"] }
+utoipa-swagger-ui = { git = "https://github.com/spotgamma/utoipa", rev="205f66f782ed8c84c490833c0bb4994181a85d84", features = ["actix-web"] }
 common = { path = "../common" }

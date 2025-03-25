@@ -2916,6 +2916,8 @@ dependencies = [
  "mongodb",
  "serde",
  "serde_json",
+ "utoipa",
+ "utoipa-swagger-ui",
  "validator",
 ]
 

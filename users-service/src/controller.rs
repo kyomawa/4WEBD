@@ -8,11 +8,15 @@ use common::{
         internal::authenticate_internal_request,
     },
     models::AuthRole,
-    utils::api_response::{ApiResponse, ObjectIdToString},
+    utils::api_response::{
+        ApiResponse, DocErrorApiResponse, DocSuccessApiResponse, ObjectIdToString,
+    },
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{CreateUserRequest, GetUserIdByEmailRequest, UpdateUserRequest, User},
     service,
 };
@@ -29,13 +33,31 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(create_user)
         .service(update_me)
         .service(update_user_by_id)
-        .service(delete_user);
+        .service(delete_user)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/users/health",
+    responses(
+        (status = 200, description = "Users Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Users Service is Alive", None);
@@ -44,6 +66,15 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/users",
+    responses(
+        (status = 200, description = "Users have been successfully retrieved", body = DocSuccessApiResponse<Vec<User>>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred while retrieving users", body = DocErrorApiResponse)
+    ),
+)]
 #[get("")]
 async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
     let required_roles = &[AuthRole::Admin, AuthRole::Operator];
@@ -68,6 +99,16 @@ async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/users/id-by-email",
+    request_body = GetUserIdByEmailRequest,
+    responses(
+        (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<ObjectIdToString>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to retrieve the user by email", body = DocErrorApiResponse)
+    ),
+)]
 #[get("/id-by-email")]
 async fn get_user_id_by_email(
     db: Data<Database>,
@@ -98,6 +139,15 @@ async fn get_user_id_by_email(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/users/me",
+    responses(
+        (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to retrieve the user", body = DocErrorApiResponse)
+    ),
+)]
 #[get("/me")]
 async fn get_me(db: Data<Database>, req: HttpRequest) -> impl Responder {
     let jwt_payload = match get_authenticated_user(&req) {
@@ -122,6 +172,18 @@ async fn get_me(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/users/{id}",
+    responses(
+        (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Access denied: insufficient role", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to retrieve the user", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "User id")
+    ),
+)]
 #[get("/{id}")]
 async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) -> impl Responder {
     let ExternalClaims { role, user_id, .. } = match get_authenticated_user(&req) {
@@ -154,6 +216,16 @@ async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) 
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/users",
+    request_body = CreateUserRequest,
+    responses(
+        (status = 200, description = "User created successfully", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to create user", body = DocErrorApiResponse)
+    ),
+)]
 #[post("")]
 async fn create_user(
     db: Data<Database>,
@@ -182,6 +254,16 @@ async fn create_user(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    put,
+    path = "/api/users/me",
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "User successfully updated", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred", body = DocErrorApiResponse)
+    ),
+)]
 #[put("/me")]
 async fn update_me(
     db: Data<Database>,
@@ -211,6 +293,19 @@ async fn update_me(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    put,
+    path = "/api/users/{id}",
+    request_body = UpdateUserRequest,
+    responses(
+        (status = 200, description = "User successfully updated", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "User id")
+    ),
+)]
 #[put("/{id}")]
 async fn update_user_by_id(
     db: Data<Database>,
@@ -242,6 +337,18 @@ async fn update_user_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/users/{id}",
+    responses(
+        (status = 200, description = "User was successfully deleted", body = DocSuccessApiResponse<User>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "User id")
+    ),
+)]
 #[delete("/{id}")]
 async fn delete_user(db: Data<Database>, id: Path<String>, req: HttpRequest) -> impl Responder {
     let required_roles = &[AuthRole::Admin];

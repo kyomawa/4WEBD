@@ -55,7 +55,7 @@ impl<T> ApiResponse<T> {
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ObjectIdToString {
     pub id: String,
 }

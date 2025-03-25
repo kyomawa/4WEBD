@@ -51,6 +51,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     path = "/api/tickets/health",
     responses(
         (status = 200, description = "Tickets Service is alive", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
     )
 )]
 #[get("/health")]

@@ -314,6 +314,8 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio_schedule",
+ "utoipa",
+ "utoipa-swagger-ui",
  "validator",
 ]
 

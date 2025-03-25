@@ -16,5 +16,7 @@ validator = { version = "0.20.0", features = ["derive"] }
 tokio_schedule = "0.3.2"
 lettre = { version = "0.11.15", default-features = false, features = ["tokio1", "smtp-transport", "builder", "tokio1-native-tls"] }
 reqwest = { version = "0.12.14", features = ["json"] }
+utoipa = { version = "5.3.1", features = ["actix_extras"] }
+utoipa-swagger-ui = { git = "https://github.com/spotgamma/utoipa", rev="205f66f782ed8c84c490833c0bb4994181a85d84", features = ["actix-web"] }
 common = { path = "../common" }
 
