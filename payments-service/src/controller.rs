@@ -8,11 +8,13 @@ use common::{
         internal::authenticate_internal_request,
     },
     models::AuthRole,
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{CreatePaymentRequest, Payment, UpdatePaymentStatusByIdRequest},
     service,
 };
@@ -26,13 +28,31 @@ pub fn config(cfg: &mut ServiceConfig) {
         .service(get_payment_by_id)
         .service(create_payment)
         .service(update_payment_status_by_id)
-        .service(delete_payment_by_id);
+        .service(delete_payment_by_id)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/payments/health",
+    responses(
+        (status = 200, description = "Payments Service is Alive.", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Payments Service is Alive.", None);
@@ -41,6 +61,15 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/payments",
+    responses(
+        (status = 200, description = "All Payments were successfully retrieved.", body = DocSuccessApiResponse<Vec<Payment>>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the payments retrieving.", body = DocErrorApiResponse)
+    ),
+)]
 #[get("")]
 async fn get_payments(db: Data<Database>, req: HttpRequest) -> impl Responder {
     let required_roles = &[AuthRole::Admin];
@@ -67,6 +96,18 @@ async fn get_payments(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/payments/{id}",
+    responses(
+        (status = 200, description = "Payment was successfully retrieved.", body = DocSuccessApiResponse<Payment>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the payment retrieving.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Payment id")
+    )
+)]
 #[get("/{id}")]
 async fn get_payment_by_id(
     db: Data<Database>,
@@ -97,6 +138,16 @@ async fn get_payment_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/payments",
+    request_body = CreatePaymentRequest,
+    responses(
+        (status = 200, description = "Payment was successfully created.", body = DocSuccessApiResponse<Payment>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the payment creation.", body = DocErrorApiResponse)
+    )
+)]
 #[post("")]
 async fn create_payment(
     db: Data<Database>,
@@ -128,6 +179,19 @@ async fn create_payment(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/payments/{id}",
+    request_body = UpdatePaymentStatusByIdRequest,
+    responses(
+        (status = 200, description = "Payment Status was successfully updated.", body = DocSuccessApiResponse<Payment>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the payment status updating.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Payment id")
+    )
+)]
 #[patch("/{id}")]
 async fn update_payment_status_by_id(
     db: Data<Database>,
@@ -161,6 +225,18 @@ async fn update_payment_status_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/payments/{id}",
+    responses(
+        (status = 200, description = "Payment was successfully deleted.", body = DocSuccessApiResponse<Payment>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the payment deleting.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Payment id")
+    )
+)]
 #[delete("/{id}")]
 async fn delete_payment_by_id(
     db: Data<Database>,
