@@ -2,24 +2,24 @@
 
 This project is a work in progress. It is being developed as a microservices-based SaaS system for managing concerts and event ticketing.
 
-Dev :
+Dev env :
 ``` bash
-docker compose up
+docker compose up --build
 ```
 
-Prod : 
+Prod env : 
 ``` bash
 docker-compose -f docker-compose.prod.yml up --build
 ```
 
 If you want multiple instances of services you can do :
 
-Dev :
+Dev env :
 ``` bash
 docker compose up --build --scale auth-service=2 --scale users-service=2 --scale events-service=2 --scale tickets-service=2 --scale notifications-service=2 --scale payments-service=2 --scale backups-service=2
 ```
 
-Prod : 
+Prod env : 
 ``` bash
 docker-compose -f docker-compose.prod.yml up --build --scale auth-service=2 --scale users-service=2 --scale events-service=2 --scale tickets-service=2 --scale notifications-service=2 --scale payments-service=2 --scale backups-service=2
 ```

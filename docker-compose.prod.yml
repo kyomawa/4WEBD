@@ -1,3 +1,8 @@
+
+name: 4webd_network
+networks:
+  4webd_network:
+    driver: bridge
 services:
   traefik:
     image: traefik:v3.1
@@ -5,19 +10,33 @@ services:
     ports:
       - "80:80"      
       - "8080:8080"
-    command:
+    command: 
       - "--providers.docker=true"          
       - "--entrypoints.http.address=:80"
       - "--ping=true"
       - "--ping.entrypoint=http"
+      - "--api.dashboard=true" 
+      - "--log.level=DEBUG"
+      - "--accesslog=true"     
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+    - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+    - "traefik.http.routers.traefik.service=api@internal"
+    - "traefik.http.routers.traefik.entrypoints=http"
+    - "traefik.http.routers.traefik.middlewares=traefik-auth"
+    - "traefik.http.middlewares.traefik-auth.basicauth.users=${DASHBOARD_USER}:${DASHBOARD_PASSWORD_HASH}"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:80/ping || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
+    networks:
+      - 4webd_network
 
   database:
     image: mongo:latest
@@ -35,6 +54,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+    networks:
+      - 4webd_network
 
   auth-service:
     build:
@@ -56,6 +77,8 @@ services:
       - "traefik.http.routers.auth.rule=PathPrefix(`/api/auth`)"
       - "traefik.http.routers.auth.entrypoints=http"
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   users-service:
     build:
@@ -77,6 +100,8 @@ services:
       - "traefik.http.routers.users.rule=PathPrefix(`/api/users`)"
       - "traefik.http.routers.users.entrypoints=http"
       - "traefik.http.services.users.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   events-service:
     build:
@@ -98,6 +123,8 @@ services:
       - "traefik.http.routers.events.rule=PathPrefix(`/api/events`)"
       - "traefik.http.routers.events.entrypoints=http"
       - "traefik.http.services.events.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   tickets-service:
     build:
@@ -119,6 +146,8 @@ services:
       - "traefik.http.routers.tickets.rule=PathPrefix(`/api/tickets`)"
       - "traefik.http.routers.tickets.entrypoints=http"
       - "traefik.http.services.tickets.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   notifications-service:
     build:
@@ -143,6 +172,8 @@ services:
       - "traefik.http.routers.notifications.rule=PathPrefix(`/api/notifications`)"
       - "traefik.http.routers.notifications.entrypoints=http"
       - "traefik.http.services.notifications.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   payments-service:
     build:
@@ -164,6 +195,8 @@ services:
       - "traefik.http.routers.payments.rule=PathPrefix(`/api/payments`)"
       - "traefik.http.routers.payments.entrypoints=http"
       - "traefik.http.services.payments.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
 
   backups-service:
     build:
@@ -185,3 +218,5 @@ services:
       - "traefik.http.routers.backups.rule=PathPrefix(`/api/backups`)"
       - "traefik.http.routers.backups.entrypoints=http"
       - "traefik.http.services.backups.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network
