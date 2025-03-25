@@ -5,11 +5,13 @@ use actix_web::{
 use common::{
     jwt::{external::user_has_any_of_these_roles, internal::authenticate_internal_request},
     models::AuthRole,
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{CreateNotification, Notification, UpdateNotificationStatus},
     service,
 };
@@ -23,13 +25,31 @@ pub fn config(cfg: &mut ServiceConfig) {
         .service(get_notification_by_id)
         .service(create_notification)
         .service(update_notification_status_by_id)
-        .service(delete_notification_by_id);
+        .service(delete_notification_by_id)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/notifications/health",
+    responses(
+        (status = 200, description = "Notifications Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Notifications Service is Alive", None);
@@ -38,6 +58,15 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/notifications",
+    responses(
+        (status = 200, description = "All notifications were successfully retrieved.", body = DocSuccessApiResponse<Vec<Notification>>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the retrieving of notifications.", body = DocErrorApiResponse)
+    )
+)]
 #[get("")]
 async fn get_notifications(db: Data<Database>, req: HttpRequest) -> impl Responder {
     let required_roles = &[AuthRole::Admin];
@@ -66,6 +95,18 @@ async fn get_notifications(db: Data<Database>, req: HttpRequest) -> impl Respond
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/notifications/{id}",
+    responses(
+        (status = 200, description = "The notification was successfully retrieved.", body = DocSuccessApiResponse<Notification>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the retrieving of the notification.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Notification id")
+    )
+)]
 #[get("/{id}")]
 async fn get_notification_by_id(
     db: Data<Database>,
@@ -100,6 +141,16 @@ async fn get_notification_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/notifications",
+    request_body = CreateNotification,
+    responses(
+        (status = 200, description = "The notification was successfully created.", body = DocSuccessApiResponse<Notification>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the creation of notification.", body = DocErrorApiResponse)
+    )
+)]
 #[post("")]
 async fn create_notification(
     db: Data<Database>,
@@ -133,6 +184,19 @@ async fn create_notification(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    patch,
+    path = "/api/notifications/{id}",
+    request_body = UpdateNotificationStatus,
+    responses(
+        (status = 200, description = "The notification was successfully updated.", body = DocSuccessApiResponse<Notification>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the update of notification.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Notification id")
+    )
+)]
 #[patch("/{id}")]
 async fn update_notification_status_by_id(
     db: Data<Database>,
@@ -169,6 +233,18 @@ async fn update_notification_status_by_id(
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    delete,
+    path = "/api/notifications/{id}",
+    responses(
+        (status = 200, description = "The notification was successfully deleted.", body = DocSuccessApiResponse<Notification>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the delete of notification.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("id" = String, Path, description = "Notification id")
+    )
+)]
 #[delete("/{id}")]
 async fn delete_notification_by_id(
     db: Data<Database>,
