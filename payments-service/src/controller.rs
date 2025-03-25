@@ -46,6 +46,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/payments/health",
+    tag = "Public Endpoints",
+    summary = "Check if Payments Service is alive",
+    description = "Returns 200 if the Payments Service is running.",
     responses(
         (status = 200, description = "Payments Service is Alive.", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -64,10 +67,13 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/payments",
+    tag = "Protected Endpoints",
+    summary = "Retrieve all payments",
+    description = "Fetches a list of all payments. Access is restricted to Admin users.",
     responses(
-        (status = 200, description = "All Payments were successfully retrieved.", body = DocSuccessApiResponse<Vec<Payment>>),
+        (status = 200, description = "All payments were successfully retrieved.", body = DocSuccessApiResponse<Vec<Payment>>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the payments retrieving.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the payments retrieval.", body = DocErrorApiResponse)
     ),
 )]
 #[get("")]
@@ -99,13 +105,16 @@ async fn get_payments(db: Data<Database>, req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/payments/{id}",
+    tag = "Protected Endpoints",
+    summary = "Retrieve a payment by ID",
+    description = "Fetches the details of a specific payment by its ID. Access is restricted to authenticated users.",
     responses(
         (status = 200, description = "Payment was successfully retrieved.", body = DocSuccessApiResponse<Payment>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the payment retrieving.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the payment retrieval.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Payment id")
+        ("id" = String, Path, description = "Payment ID")
     )
 )]
 #[get("/{id}")]
@@ -141,6 +150,9 @@ async fn get_payment_by_id(
 #[utoipa::path(
     post,
     path = "/api/payments",
+    tag = "Internal Endpoints",
+    summary = "Create a new payment",
+    description = "Creates a new payment for a ticket or event. This endpoint is intended for internal use.",
     request_body = CreatePaymentRequest,
     responses(
         (status = 200, description = "Payment was successfully created.", body = DocSuccessApiResponse<Payment>),
@@ -182,15 +194,18 @@ async fn create_payment(
 #[utoipa::path(
     patch,
     path = "/api/payments/{id}",
+    tag = "Internal Endpoints",
+    summary = "Update payment status",
+    description = "Updates the status of a payment. This endpoint is intended for internal use.",
     request_body = UpdatePaymentStatusByIdRequest,
     responses(
-        (status = 200, description = "Payment Status was successfully updated.", body = DocSuccessApiResponse<Payment>),
+        (status = 200, description = "Payment status was successfully updated.", body = DocSuccessApiResponse<Payment>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the payment status updating.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the payment status update.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Payment id")
-    )
+        ("id" = String, Path, description = "Payment ID")
+    ),
 )]
 #[patch("/{id}")]
 async fn update_payment_status_by_id(
@@ -228,13 +243,16 @@ async fn update_payment_status_by_id(
 #[utoipa::path(
     delete,
     path = "/api/payments/{id}",
+    tag = "Internal Endpoints",
+    summary = "Delete a payment",
+    description = "Deletes a payment specified by its ID. This endpoint is intended for internal use.",
     responses(
         (status = 200, description = "Payment was successfully deleted.", body = DocSuccessApiResponse<Payment>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the payment deleting.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the payment deletion.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Payment id")
+        ("id" = String, Path, description = "Payment ID")
     )
 )]
 #[delete("/{id}")]

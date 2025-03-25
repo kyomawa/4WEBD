@@ -44,6 +44,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/auth/health",
+    tag = "Public Endpoints",
+    summary = "Check if Auth Service is alive",
+    description = "Returns 200 if the Auth Service is up and running.",
     responses(
         (status = 200, description = "Auth Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -62,10 +65,13 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/auth",
+    tag = "Internal Endpoints",
+    summary = "Retrieve all credentials",
+    description = "Used internally to list all credentials. Restricted to internal requests using an internal JWT.",
     responses(
         (status = 200, description = "All credentials were successfully retrieved.", body = DocSuccessApiResponse<Vec<Auth>>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occured during the credentials retrieving.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the credentials retrieval.", body = DocErrorApiResponse)
     )
 )]
 #[get("")]
@@ -96,10 +102,13 @@ async fn get_auths(db: Data<Database>, req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/auth/me",
+    tag = "Protected Endpoints",
+    summary = "Get current user credentials",
+    description = "Returns the roles and user ID for the currently authenticated user.",
     responses(
         (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<ExternalClaims>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occured during the retrieval.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the retrieval.", body = DocErrorApiResponse)
     )
 )]
 #[get("/me")]
@@ -121,11 +130,14 @@ async fn get_me(req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     post,
     path = "/api/auth/register",
+    tag = "Public Endpoints",
+    summary = "Register a new user",
+    description = "Creates new credentials (email/password, roles, etc.). May also notify the Users Service to create a user profile.",
     request_body = CreateAuthRequest,
     responses(
         (status = 200, description = "User successfully registered.", body = DocSuccessApiResponse<Auth>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occured during the registering.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the registration.", body = DocErrorApiResponse)
     ),
     security(
         ("public_routes" = [])
@@ -154,11 +166,14 @@ async fn register(db: Data<Database>, payload: Json<CreateAuthRequest>) -> impl 
 #[utoipa::path(
     post,
     path = "/api/auth/login",
+    tag = "Public Endpoints",
+    summary = "User login",
+    description = "Authenticates with email/password. Returns a JWT token upon success.",
     request_body = LoginRequest,
     responses(
-        (status = 200, description = "Welcome back !", body = DocSuccessApiResponse<LoginResponse>),
-        (status = 401, description = "Invalid credentials or an error occured.", body = DocErrorApiResponse),
-        (status = 500, description = "An error occured during login.", body = DocErrorApiResponse)
+        (status = 200, description = "Welcome back!", body = DocSuccessApiResponse<LoginResponse>),
+        (status = 401, description = "Invalid credentials or an error occurred.", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during login.", body = DocErrorApiResponse)
     ),
     security(
         ("public_routes" = [])

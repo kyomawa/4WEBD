@@ -14,6 +14,14 @@ use utoipa::{
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Tickets Service",
+        version = "1.0.0",
+        description = r#"
+The Tickets Service handles ticket purchases and management.
+It provides endpoints for retrieving, creating, updating, activating, cancelling, refunding, and deleting tickets.
+"#
+    ),
     paths(
         health_check,
         get_tickets,
@@ -34,9 +42,6 @@ use utoipa::{
     components(
         schemas(CreateTicketRequest, Ticket, UpdateTicketSeatNumberByIdRequest),
         
-    ),
-    tags(
-        (name = "Tickets", description = "Endpoints for managing tickets")
     )
 )]
 pub struct ApiDoc;

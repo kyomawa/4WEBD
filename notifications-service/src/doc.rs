@@ -15,6 +15,14 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Notifications Service",
+        version = "1.0.0",
+        description = r#"
+The Notifications Service sends confirmations (email or SMS) about ticket purchases or other user-related notifications.
+It provides endpoints for retrieving, creating, updating, and deleting notifications.
+"#
+    ),
     paths(
         health_check,
         get_notifications,
@@ -38,10 +46,7 @@ use common::models::AuthRole;
         ("public_routes" = ["read:items", "edit:items"]),
         ("bearerAuth" = [])
     ),
-    modifiers(&SecurityAddon),
-    tags(
-        (name = "Notifications", description = "Endpoints for managing notifications")
-    )
+    modifiers(&SecurityAddon)
 )]
 pub struct ApiDoc;
 

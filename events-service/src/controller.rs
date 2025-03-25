@@ -44,6 +44,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/events/health",
+    tag = "Public Endpoints",
+    summary = "Check if Events Service is alive",
+    description = "Returns 200 if the Events Service is up and running.",
     responses(
         (status = 200, description = "Events Service is alive", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -62,6 +65,9 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/events",
+    tag = "Public Endpoints",
+    summary = "Retrieve all events",
+    description = "Fetches a list of all events.",
     responses(
         (status = 200, description = "Events were successfully retrieved.", body = DocSuccessApiResponse<Vec<Event>>),
         (status = 500, description = "An error occurred while trying to get events.", body = DocErrorApiResponse)
@@ -93,12 +99,15 @@ async fn get_events(db: Data<Database>) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/events/{id}",
+    tag = "Public Endpoints",
+    summary = "Retrieve an event by ID",
+    description = "Fetches details of a specific event by its ID.",
     responses(
         (status = 200, description = "Event was successfully retrieved.", body = DocSuccessApiResponse<Event>),
         (status = 500, description = "Failed to retrieve the event by id", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Event id")
+        ("id" = String, Path, description = "Event ID")
     ),
     security(
         ("public_routes" = [])
@@ -126,6 +135,9 @@ async fn get_event_by_id(db: Data<Database>, id: Path<String>) -> impl Responder
 #[utoipa::path(
     post,
     path = "/api/events",
+    tag = "Protected Endpoints",
+    summary = "Create a new event",
+    description = "Creates a new event. Access is restricted to Admin or EventCreator roles.",
     request_body = CreateEventRequest,
     responses(
         (status = 200, description = "Event was successfully created.", body = DocSuccessApiResponse<Event>),
@@ -165,6 +177,9 @@ async fn create_event(
 #[utoipa::path(
     put,
     path = "/api/events/{id}",
+    tag = "Protected Endpoints",
+    summary = "Update an event",
+    description = "Updates the details of an existing event. Access is restricted to Admin or EventCreator roles.",
     request_body = UpdateEventRequest,
     responses(
         (status = 200, description = "Event was successfully updated.", body = DocSuccessApiResponse<Event>),
@@ -172,7 +187,7 @@ async fn create_event(
         (status = 500, description = "Failed to update the event", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Event id")
+        ("id" = String, Path, description = "Event ID")
     )
 )]
 #[put("/{id}")]
@@ -210,6 +225,9 @@ async fn update_event_by_id(
 #[utoipa::path(
     patch,
     path = "/api/events/{id}/update-seats",
+    tag = "Internal Endpoints",
+    summary = "Update remaining seats for an event",
+    description = "Updates the number of remaining seats for an event. This endpoint is for internal use only.",
     request_body = UpdateSeatsRequest,
     responses(
         (status = 200, description = "Remaining seats successfully updated.", body = DocSuccessApiResponse<Event>),
@@ -217,7 +235,7 @@ async fn update_event_by_id(
         (status = 500, description = "Failed to update remaining seats.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Event id")
+        ("id" = String, Path, description = "Event ID")
     )
 )]
 #[patch("/{id}/update-seats")]
@@ -254,13 +272,16 @@ async fn update_event_seats_by_id(
 #[utoipa::path(
     delete,
     path = "/api/events/{id}",
+    tag = "Protected Endpoints",
+    summary = "Delete an event",
+    description = "Deletes an event specified by its ID. Access is restricted to Admin or EventCreator roles.",
     responses(
         (status = 200, description = "Event was successfully deleted.", body = DocSuccessApiResponse<Event>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to delete the event.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Event id")
+        ("id" = String, Path, description = "Event ID")
     )
 )]
 #[delete("/{id}")]

@@ -13,6 +13,14 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Users Service",
+        version = "1.0.0",
+        description = r#"
+The Users Service manages user profile data such as name, email, and contact information.
+It provides endpoints for retrieving, creating, updating, and deleting user profiles.
+"#
+    ),
     paths(
         health_check,
         get_users,
@@ -38,10 +46,7 @@ use common::models::AuthRole;
       ("public_routes" = ["read:items", "edit:items"]),
       ("bearerAuth" = []),
     ),
-    modifiers(&SecurityAddon),
-    tags(
-        (name = "Users", description = "Endpoints for managing users")
-    )
+    modifiers(&SecurityAddon)
 )]
 pub struct ApiDoc;
 

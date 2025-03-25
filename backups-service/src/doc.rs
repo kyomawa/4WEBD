@@ -12,6 +12,14 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Backups Service",
+        version = "1.0.0",
+        description = r#"
+The Backups Service centralizes the management and scheduling of backups for various microservices.
+It provides endpoints for retrieving, creating, and deleting backups.
+"#
+    ),
     paths(
         health_check,
         get_last_backup_by_service_name,
@@ -33,9 +41,6 @@ use common::models::AuthRole;
         ("bearerAuth" = [])
     ),
     modifiers(&SecurityAddon),
-    tags(
-        (name = "Backups", description = "Endpoints for managing backups")
-    )
 )]
 pub struct ApiDoc;
 

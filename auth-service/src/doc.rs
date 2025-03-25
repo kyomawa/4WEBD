@@ -12,6 +12,15 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Auth Service",
+        version = "1.0.0",
+        description = r#"
+The Auth Service handles user authentication (login, token management) and basic authorization checks.
+It provides public endpoints for registering and logging in,
+and internal endpoints for the management of credentials.
+"#
+    ),
     paths(
         health_check,
         get_auths,
@@ -35,9 +44,6 @@ use common::models::AuthRole;
         ("bearerAuth" = [])
     ),
     modifiers(&SecurityAddon),
-    tags(
-        (name = "Auth", description = "Endpoints for managing authentication")
-    )
 )]
 pub struct ApiDoc;
 

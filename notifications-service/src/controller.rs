@@ -43,6 +43,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/notifications/health",
+    tag = "Public Endpoints",
+    summary = "Check if Notifications Service is alive",
+    description = "Returns 200 if the Notifications Service is up and running.",
     responses(
         (status = 200, description = "Notifications Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -61,10 +64,13 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/notifications",
+    tag = "Protected Endpoints",
+    summary = "Retrieve all notifications",
+    description = "Fetches a list of all notifications. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "All notifications were successfully retrieved.", body = DocSuccessApiResponse<Vec<Notification>>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the retrieving of notifications.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the retrieval of notifications.", body = DocErrorApiResponse)
     )
 )]
 #[get("")]
@@ -98,13 +104,16 @@ async fn get_notifications(db: Data<Database>, req: HttpRequest) -> impl Respond
 #[utoipa::path(
     get,
     path = "/api/notifications/{id}",
+    tag = "Protected Endpoints",
+    summary = "Retrieve a notification by ID",
+    description = "Fetches the details of a notification specified by its ID. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "The notification was successfully retrieved.", body = DocSuccessApiResponse<Notification>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the retrieving of the notification.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the retrieval of the notification.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Notification id")
+        ("id" = String, Path, description = "Notification ID")
     )
 )]
 #[get("/{id}")]
@@ -144,11 +153,14 @@ async fn get_notification_by_id(
 #[utoipa::path(
     post,
     path = "/api/notifications",
+    tag = "Internal Endpoints",
+    summary = "Create a new notification",
+    description = "Creates a new notification request. This endpoint is called internally after a successful ticket purchase.",
     request_body = CreateNotification,
     responses(
         (status = 200, description = "The notification was successfully created.", body = DocSuccessApiResponse<Notification>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the creation of notification.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the creation of the notification.", body = DocErrorApiResponse)
     )
 )]
 #[post("")]
@@ -187,14 +199,17 @@ async fn create_notification(
 #[utoipa::path(
     patch,
     path = "/api/notifications/{id}",
+    tag = "Protected Endpoints",
+    summary = "Update notification status",
+    description = "Updates the status of a notification (e.g., from pending to sent). Access is restricted to Admin users.",
     request_body = UpdateNotificationStatus,
     responses(
         (status = 200, description = "The notification was successfully updated.", body = DocSuccessApiResponse<Notification>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the update of notification.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the update of the notification.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Notification id")
+        ("id" = String, Path, description = "Notification ID")
     )
 )]
 #[patch("/{id}")]
@@ -236,13 +251,16 @@ async fn update_notification_status_by_id(
 #[utoipa::path(
     delete,
     path = "/api/notifications/{id}",
+    tag = "Protected Endpoints",
+    summary = "Delete a notification",
+    description = "Deletes a notification specified by its ID. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "The notification was successfully deleted.", body = DocSuccessApiResponse<Notification>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
-        (status = 500, description = "An error occurred during the delete of notification.", body = DocErrorApiResponse)
+        (status = 500, description = "An error occurred during the deletion of the notification.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Notification id")
+        ("id" = String, Path, description = "Notification ID")
     )
 )]
 #[delete("/{id}")]

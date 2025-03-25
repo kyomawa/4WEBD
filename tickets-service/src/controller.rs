@@ -49,6 +49,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/tickets/health",
+    tag = "Public Endpoints",
+    summary = "Check if Tickets Service is alive",
+    description = "Returns 200 if the Tickets Service is up and running.",
     responses(
         (status = 200, description = "Tickets Service is alive", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -67,6 +70,9 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/tickets",
+    tag = "Protected Endpoints",
+    summary = "Retrieve all tickets",
+    description = "Fetches a list of tickets for the currently authenticated user. Admins and Operators see all tickets.",
     responses(
         (status = 200, description = "Tickets were successfully retrieved.", body = DocSuccessApiResponse<Vec<Ticket>>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
@@ -99,10 +105,16 @@ async fn get_tickets(db: Data<Database>, req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/tickets/{ticket_id}",
+    tag = "Protected Endpoints",
+    summary = "Retrieve a ticket by ID",
+    description = "Fetches details of a specific ticket by its ID. Access is restricted based on user role or ownership.",
     responses(
         (status = 200, description = "Ticket was successfully retrieved.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to retrieve the ticket.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("ticket_id" = String, Path, description = "Ticket ID")
     )
 )]
 #[get("/{ticket_id}")]
@@ -137,9 +149,12 @@ async fn get_ticket_by_id(
 #[utoipa::path(
     post,
     path = "/api/tickets",
+    tag = "Protected Endpoints",
+    summary = "Create a new ticket",
+    description = "Creates a new ticket for an event. Requires the user to be authenticated.",
     request_body = CreateTicketRequest,
     responses(
-        (status = 200, description = "The ticket successfully created.", body = DocSuccessApiResponse<Ticket>),
+        (status = 200, description = "The ticket was successfully created.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to create the ticket.", body = DocErrorApiResponse)
     )
@@ -176,11 +191,17 @@ async fn create_ticket(
 #[utoipa::path(
     patch,
     path = "/api/tickets/{ticket_id}/seat",
+    tag = "Protected Endpoints",
+    summary = "Update ticket seat number",
+    description = "Updates the seat number of a ticket. Requires the user to be authenticated.",
     request_body = UpdateTicketSeatNumberByIdRequest,
     responses(
         (status = 200, description = "The ticket seat number was successfully updated.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to update the ticket seat number.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("ticket_id" = String, Path, description = "Ticket ID")
     )
 )]
 #[patch("/{ticket_id}/seat")]
@@ -227,6 +248,9 @@ async fn update_ticket_seat_number_by_id(
 #[utoipa::path(
     patch,
     path = "/api/tickets/{ticket_id}/active",
+    tag = "Internal Endpoints",
+    summary = "Activate a ticket",
+    description = "Activates a ticket by changing its status to Active. This is an internal operation.",
     responses(
         (status = 200, description = "The ticket was successfully activated.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
@@ -265,10 +289,16 @@ async fn active_ticket_by_id(
 #[utoipa::path(
     patch,
     path = "/api/tickets/{ticket_id}/cancel",
+    tag = "Protected Endpoints",
+    summary = "Cancel a ticket",
+    description = "Cancels a ticket by updating its status to Cancelled. Accessible by the ticket owner or an administrator.",
     responses(
         (status = 200, description = "The ticket was successfully cancelled.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to cancel the ticket.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("ticket_id" = String, Path, description = "Ticket ID")
     )
 )]
 #[patch("/{ticket_id}/cancel")]
@@ -304,10 +334,16 @@ async fn cancel_ticket_by_id(
 #[utoipa::path(
     patch,
     path = "/api/tickets/{ticket_id}/refund",
+    tag = "Protected Endpoints",
+    summary = "Refund a ticket",
+    description = "Refunds a ticket by updating its status to Refunded. Accessible by the ticket owner or an administrator.",
     responses(
         (status = 200, description = "The ticket was successfully refunded.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to refund the ticket.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("ticket_id" = String, Path, description = "Ticket ID")
     )
 )]
 #[patch("/{ticket_id}/refund")]
@@ -343,10 +379,16 @@ async fn refund_ticket_by_id(
 #[utoipa::path(
     delete,
     path = "/api/tickets/{ticket_id}",
+    tag = "Protected Endpoints",
+    summary = "Delete a ticket",
+    description = "Permanently deletes a ticket specified by its ID. This action is restricted to administrators.",
     responses(
         (status = 200, description = "The ticket was successfully deleted.", body = DocSuccessApiResponse<Ticket>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to delete the ticket.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("ticket_id" = String, Path, description = "Ticket ID")
     )
 )]
 #[delete("/{ticket_id}")]

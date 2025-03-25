@@ -12,6 +12,14 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Events Service",
+        version = "1.0.0",
+        description = r#"
+The Events Service manages event data including title, description, date, capacity, and location.
+It provides endpoints for retrieving, creating, updating, and deleting events, as well as updating the remaining seats.
+"#
+    ),
     paths(
         health_check,
         get_events,
@@ -36,9 +44,6 @@ use common::models::AuthRole;
         ("bearerAuth" = [])
     ),
     modifiers(&SecurityAddon),
-    tags(
-        (name = "Events", description = "Endpoints for managing events")
-    )
 )]
 pub struct ApiDoc;
 

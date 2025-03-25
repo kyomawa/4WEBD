@@ -12,6 +12,14 @@ use common::models::AuthRole;
 
 #[derive(OpenApi)]
 #[openapi(
+    info(
+        title = "Payments Service",
+        version = "1.0.0",
+        description = r#"
+The Payments Service handles credit card payments.
+It provides endpoints for retrieving, creating, updating, and deleting payment records.
+"#
+    ),
     paths(
         health_check,
         get_payments,
@@ -35,9 +43,6 @@ use common::models::AuthRole;
         ("bearerAuth" = [])
     ),
     modifiers(&SecurityAddon),
-    tags(
-        (name = "Payments", description = "Endpoints for handling payments")
-    )
 )]
 pub struct ApiDoc;
 

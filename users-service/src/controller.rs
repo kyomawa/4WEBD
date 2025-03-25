@@ -51,6 +51,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/users/health",
+    tag = "Public Endpoints",
+    summary = "Check if Users Service is alive",
+    description = "Returns 200 if the Users Service is running.",
     responses(
         (status = 200, description = "Users Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -69,11 +72,14 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/users",
+    tag = "Protected Endpoints",
+    summary = "Retrieve all users",
+    description = "Fetches a list of all users. Access is restricted to Admin or Operator roles.",
     responses(
         (status = 200, description = "Users have been successfully retrieved", body = DocSuccessApiResponse<Vec<User>>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred while retrieving users", body = DocErrorApiResponse)
-    ),
+    )
 )]
 #[get("")]
 async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
@@ -102,12 +108,15 @@ async fn get_users(db: Data<Database>, req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/users/id-by-email",
+    tag = "Internal Endpoints",
+    summary = "Retrieve user ID by email",
+    description = "Fetches the user ID corresponding to the provided email. This endpoint is for internal use.",
     request_body = GetUserIdByEmailRequest,
     responses(
         (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<ObjectIdToString>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to retrieve the user by email", body = DocErrorApiResponse)
-    ),
+    )
 )]
 #[get("/id-by-email")]
 async fn get_user_id_by_email(
@@ -142,11 +151,14 @@ async fn get_user_id_by_email(
 #[utoipa::path(
     get,
     path = "/api/users/me",
+    tag = "Protected Endpoints",
+    summary = "Retrieve current user profile",
+    description = "Returns the profile of the currently authenticated user.",
     responses(
         (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<User>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to retrieve the user", body = DocErrorApiResponse)
-    ),
+    )
 )]
 #[get("/me")]
 async fn get_me(db: Data<Database>, req: HttpRequest) -> impl Responder {
@@ -175,14 +187,17 @@ async fn get_me(db: Data<Database>, req: HttpRequest) -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/users/{id}",
+    tag = "Protected Endpoints",
+    summary = "Retrieve a user by ID",
+    description = "Fetches the profile of a specific user. Access is restricted to Admin, Operator, or the user themselves.",
     responses(
         (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<User>),
         (status = 401, description = "Access denied: insufficient role", body = DocErrorApiResponse),
         (status = 500, description = "Failed to retrieve the user", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "User id")
-    ),
+        ("id" = String, Path, description = "User ID")
+    )
 )]
 #[get("/{id}")]
 async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) -> impl Responder {
@@ -219,12 +234,15 @@ async fn get_user_by_id(db: Data<Database>, id: Path<String>, req: HttpRequest) 
 #[utoipa::path(
     post,
     path = "/api/users",
+    tag = "Protected Endpoints",
+    summary = "Register a new user",
+    description = "Creates a new user profile. This may be a two-step process if registration is handled separately from authentication.",
     request_body = CreateUserRequest,
     responses(
         (status = 200, description = "User created successfully", body = DocSuccessApiResponse<User>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "Failed to create user", body = DocErrorApiResponse)
-    ),
+    )
 )]
 #[post("")]
 async fn create_user(
@@ -257,12 +275,15 @@ async fn create_user(
 #[utoipa::path(
     put,
     path = "/api/users/me",
+    tag = "Protected Endpoints",
+    summary = "Update current user's profile",
+    description = "Updates the profile of the currently authenticated user.",
     request_body = UpdateUserRequest,
     responses(
         (status = 200, description = "User successfully updated", body = DocSuccessApiResponse<User>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred", body = DocErrorApiResponse)
-    ),
+    )
 )]
 #[put("/me")]
 async fn update_me(
@@ -296,6 +317,9 @@ async fn update_me(
 #[utoipa::path(
     put,
     path = "/api/users/{id}",
+    tag = "Protected Endpoints",
+    summary = "Update a user's profile",
+    description = "Updates the profile of a specific user. Access is restricted to Admin users.",
     request_body = UpdateUserRequest,
     responses(
         (status = 200, description = "User successfully updated", body = DocSuccessApiResponse<User>),
@@ -303,8 +327,8 @@ async fn update_me(
         (status = 500, description = "An error occurred", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "User id")
-    ),
+        ("id" = String, Path, description = "User ID")
+    )
 )]
 #[put("/{id}")]
 async fn update_user_by_id(
@@ -340,14 +364,17 @@ async fn update_user_by_id(
 #[utoipa::path(
     delete,
     path = "/api/users/{id}",
+    tag = "Protected Endpoints",
+    summary = "Delete a user",
+    description = "Permanently deletes a user specified by its ID. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "User was successfully deleted", body = DocSuccessApiResponse<User>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "User id")
-    ),
+        ("id" = String, Path, description = "User ID")
+    )
 )]
 #[delete("/{id}")]
 async fn delete_user(db: Data<Database>, id: Path<String>, req: HttpRequest) -> impl Responder {

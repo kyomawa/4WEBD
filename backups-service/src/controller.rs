@@ -42,6 +42,9 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[utoipa::path(
     get,
     path = "/api/backups/health",
+    tag = "Public Endpoints",
+    summary = "Check if Backups Service is alive",
+    description = "Returns a 200 status code if the Backups Service is up and running.",
     responses(
         (status = 200, description = "Backups Service is Alive.", body = DocSuccessApiResponse<serde_json::Value>)
     ),
@@ -60,13 +63,17 @@ async fn health_check() -> impl Responder {
 #[utoipa::path(
     get,
     path = "/api/backups/{service_name}/last",
+    tag = "Internal Endpoints",
+    summary = "Retrieve the last backup for a service",
+    description = "Fetches the most recent backup for the specified service. This endpoint requires internal authentication.",
+    request_body = GetLastBackupByServiceName,
     responses(
         (status = 200, description = "Backup was successfully retrieved.", body = DocSuccessApiResponse<Backup>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred while retrieving the backup.", body = DocErrorApiResponse)
     ),
     params(
-        ("service_name" = String, Path, description = "Service name (Like: Events, Payments...)")
+        ("service_name" = String, Path, description = "The name of the service (e.g. Events, Payments)")
     )
 )]
 #[get("/{service_name}/last")]
@@ -103,13 +110,16 @@ async fn get_last_backup_by_service_name(
 #[utoipa::path(
     get,
     path = "/api/backups/{id}",
+    tag = "Protected Endpoints",
+    summary = "Retrieve backup details",
+    description = "Retrieves the details of a backup specified by its ID. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "Backup was successfully retrieved.", body = DocSuccessApiResponse<Backup>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred while retrieving the backup.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Backup id")
+        ("id" = String, Path, description = "Backup ID")
     )
 )]
 #[get("/{id}")]
@@ -147,6 +157,9 @@ async fn get_backup_by_id(
 #[utoipa::path(
     post,
     path = "/api/backups",
+    tag = "Protected Endpoints",
+    summary = "Create a new backup",
+    description = "Initiates a new backup for the specified service. Access is restricted to Admin users.",
     request_body = CreateBackup,
     responses(
         (status = 200, description = "Backup was successfully created.", body = DocSuccessApiResponse<Backup>),
@@ -187,13 +200,16 @@ async fn create_backup(
 #[utoipa::path(
     delete,
     path = "/api/backups/{id}",
+    tag = "Protected Endpoints",
+    summary = "Delete a backup",
+    description = "Deletes a backup specified by its ID. Access is restricted to Admin users.",
     responses(
         (status = 200, description = "Backup was successfully deleted.", body = DocSuccessApiResponse<Backup>),
         (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
         (status = 500, description = "An error occurred while deleting the backup.", body = DocErrorApiResponse)
     ),
     params(
-        ("id" = String, Path, description = "Backup id")
+        ("id" = String, Path, description = "Backup ID")
     )
 )]
 #[delete("/{id}")]
