@@ -6,6 +6,7 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::{models::AuthRole, utils::api_response::ApiResponse};
 
@@ -20,10 +21,13 @@ pub static JWT_EXTERNAL_SIGNATURE: Lazy<Vec<u8>> = Lazy::new(|| {
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ExternalClaims {
+    #[schema(example = "63f7b1c0a1234567890abcdef", value_type = String)]
     pub user_id: String,
+    #[schema(example = "User", value_type = String)]
     pub role: AuthRole,
+    #[schema(example = 1947042796)]
     pub exp: i64,
 }
 

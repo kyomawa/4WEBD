@@ -7,11 +7,13 @@ use common::{
         external::{ExternalClaims, get_authenticated_user},
         internal::authenticate_internal_request,
     },
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
+use utoipa::OpenApi;
 
 use crate::{
+    doc::ApiDoc,
     model::{Auth, CreateAuthRequest, LoginRequest, LoginResponse},
     service,
 };
@@ -24,13 +26,31 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_auths)
         .service(get_me)
         .service(register)
-        .service(login);
+        .service(login)
+        .service(web::resource("/doc").route(web::get().to(|| async {
+            HttpResponse::Found()
+                .append_header(("Location", "./"))
+                .finish()
+        })))
+        .service(web::scope("/doc").service(
+            utoipa_swagger_ui::SwaggerUi::new("{_:.*}").url("openapi.json", ApiDoc::openapi()),
+        ));
 
     cfg.service(scope);
 }
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/auth/health",
+    responses(
+        (status = 200, description = "Auth Service is Alive", body = DocSuccessApiResponse<serde_json::Value>)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[get("/health")]
 async fn health_check() -> impl Responder {
     let response: ApiResponse<()> = ApiResponse::success("🟢 Auth Service is Alive", None);
@@ -39,6 +59,15 @@ async fn health_check() -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/auth",
+    responses(
+        (status = 200, description = "All credentials were successfully retrieved.", body = DocSuccessApiResponse<Vec<Auth>>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occured during the credentials retrieving.", body = DocErrorApiResponse)
+    )
+)]
 #[get("")]
 async fn get_auths(db: Data<Database>, req: HttpRequest) -> impl Responder {
     match authenticate_internal_request(&req) {
@@ -64,6 +93,15 @@ async fn get_auths(db: Data<Database>, req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    get,
+    path = "/api/auth/me",
+    responses(
+        (status = 200, description = "User successfully retrieved", body = DocSuccessApiResponse<ExternalClaims>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occured during the retrieval.", body = DocErrorApiResponse)
+    )
+)]
 #[get("/me")]
 async fn get_me(req: HttpRequest) -> impl Responder {
     match get_authenticated_user(&req) {
@@ -80,6 +118,19 @@ async fn get_me(req: HttpRequest) -> impl Responder {
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    request_body = CreateAuthRequest,
+    responses(
+        (status = 200, description = "User successfully registered.", body = DocSuccessApiResponse<Auth>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occured during the registering.", body = DocErrorApiResponse)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[post("/register")]
 async fn register(db: Data<Database>, payload: Json<CreateAuthRequest>) -> impl Responder {
     let data = payload.into_inner();
@@ -100,6 +151,19 @@ async fn register(db: Data<Database>, payload: Json<CreateAuthRequest>) -> impl 
 
 // =============================================================================================================================
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Welcome back !", body = DocSuccessApiResponse<LoginResponse>),
+        (status = 401, description = "Invalid credentials or an error occured.", body = DocErrorApiResponse),
+        (status = 500, description = "An error occured during login.", body = DocErrorApiResponse)
+    ),
+    security(
+        ("public_routes" = [])
+    )
+)]
 #[post("/login")]
 async fn login(db: Data<Database>, payload: Json<LoginRequest>) -> impl Responder {
     let data = payload.into_inner();

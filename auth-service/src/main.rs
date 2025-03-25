@@ -4,6 +4,7 @@ use extractor::deserialize_error_extractor;
 
 mod controller;
 mod db;
+mod doc;
 mod extractor;
 mod model;
 mod service;
