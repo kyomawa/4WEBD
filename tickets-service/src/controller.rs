@@ -8,7 +8,7 @@ use common::{
         internal::authenticate_internal_request,
     },
     models::AuthRole,
-    utils::api_response::ApiResponse,
+    utils::api_response::{ApiResponse, DocErrorApiResponse, DocSuccessApiResponse},
 };
 use mongodb::Database;
 use utoipa::OpenApi;
@@ -50,7 +50,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     get,
     path = "/api/tickets/health",
     responses(
-        (status = 200, description = "Tickets Service is alive", body = ApiResponse<serde_json::Value>)
+        (status = 200, description = "Tickets Service is alive", body = DocSuccessApiResponse<serde_json::Value>)
     )
 )]
 #[get("/health")]
@@ -65,8 +65,9 @@ async fn health_check() -> impl Responder {
     get,
     path = "/api/tickets",
     responses(
-        (status = 200, description = "Tickets were successfully retrieved.", body = ApiResponse<Vec<Ticket>>),
-        (status = 500, description = "Failed to retrieve tickets.")
+        (status = 200, description = "Tickets were successfully retrieved.", body = DocSuccessApiResponse<Vec<Ticket>>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to retrieve tickets.", body = DocErrorApiResponse)
     )
 )]
 #[get("")]
@@ -96,8 +97,9 @@ async fn get_tickets(db: Data<Database>, req: HttpRequest) -> impl Responder {
     get,
     path = "/api/tickets/{ticket_id}",
     responses(
-        (status = 200, description = "Ticket was successfully retrieved.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to retrieve the ticket.")
+        (status = 200, description = "Ticket was successfully retrieved.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to retrieve the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[get("/{ticket_id}")]
@@ -134,8 +136,9 @@ async fn get_ticket_by_id(
     path = "/api/tickets",
     request_body = CreateTicketRequest,
     responses(
-        (status = 200, description = "The ticket successfully created.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to create the ticket.")
+        (status = 200, description = "The ticket successfully created.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to create the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[post("")]
@@ -172,8 +175,9 @@ async fn create_ticket(
     path = "/api/tickets/{ticket_id}/seat",
     request_body = UpdateTicketSeatNumberByIdRequest,
     responses(
-        (status = 200, description = "The ticket seat number was successfully updated.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to update the ticket seat number.")
+        (status = 200, description = "The ticket seat number was successfully updated.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to update the ticket seat number.", body = DocErrorApiResponse)
     )
 )]
 #[patch("/{ticket_id}/seat")]
@@ -221,8 +225,9 @@ async fn update_ticket_seat_number_by_id(
     patch,
     path = "/api/tickets/{ticket_id}/active",
     responses(
-        (status = 200, description = "The ticket was successfully activated.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to activate the ticket.")
+        (status = 200, description = "The ticket was successfully activated.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to activate the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[patch("/{ticket_id}/active")]
@@ -258,8 +263,9 @@ async fn active_ticket_by_id(
     patch,
     path = "/api/tickets/{ticket_id}/cancel",
     responses(
-        (status = 200, description = "The ticket was successfully cancelled.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to cancel the ticket.")
+        (status = 200, description = "The ticket was successfully cancelled.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to cancel the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[patch("/{ticket_id}/cancel")]
@@ -296,8 +302,9 @@ async fn cancel_ticket_by_id(
     patch,
     path = "/api/tickets/{ticket_id}/refund",
     responses(
-        (status = 200, description = "The ticket was successfully refunded.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to refund the ticket.")
+        (status = 200, description = "The ticket was successfully refunded.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to refund the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[patch("/{ticket_id}/refund")]
@@ -334,8 +341,9 @@ async fn refund_ticket_by_id(
     delete,
     path = "/api/tickets/{ticket_id}",
     responses(
-        (status = 200, description = "The ticket was successfully deleted.", body = ApiResponse<Ticket>),
-        (status = 500, description = "Failed to delete the ticket.")
+        (status = 200, description = "The ticket was successfully deleted.", body = DocSuccessApiResponse<Ticket>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "Failed to delete the ticket.", body = DocErrorApiResponse)
     )
 )]
 #[delete("/{ticket_id}")]

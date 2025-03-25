@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 
 // =============================================================================================================================
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ApiResponse<T> {
     Success {
@@ -66,6 +66,27 @@ pub struct ObjectIdToString {
 pub struct ObjectIdWrapper {
     #[serde(rename = "id", deserialize_with = "deserialize_object_id")]
     pub id: ObjectId,
+}
+
+// =============================================================================================================================
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct DocSuccessApiResponse<T> {
+    #[schema(example = true)]
+    pub success: bool,
+    #[schema(example = "Some success message")]
+    pub message: String,
+    pub data: Option<T>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct DocErrorApiResponse {
+    #[schema(example = false)]
+    pub success: bool,
+    #[schema(example = "Some error message")]
+    pub message: String,
+    #[schema(example = "Detailed error info")]
+    pub error: String,
 }
 
 // =============================================================================================================================
