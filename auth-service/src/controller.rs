@@ -1,6 +1,6 @@
 use actix_web::{
-    HttpRequest, HttpResponse, Responder, get, post,
-    web::{self, Data, Json},
+    HttpRequest, HttpResponse, Responder, delete, get, post,
+    web::{self, Data, Json, Path},
 };
 use common::{
     jwt::{
@@ -27,6 +27,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(get_me)
         .service(register)
         .service(login)
+        .service(delete_auth_by_user_id)
         .service(web::resource("/doc").route(web::get().to(|| async {
             HttpResponse::Found()
                 .append_header(("Location", "./"))
@@ -121,6 +122,52 @@ async fn get_me(req: HttpRequest) -> impl Responder {
         }
         Err(err_res) => {
             return err_res;
+        }
+    }
+}
+
+// =============================================================================================================================
+
+#[utoipa::path(
+    delete,
+    path = "/api/auth/{user_id}",
+    tag = "Internal Endpoints",
+    summary = "Delete user credentials",
+    description = "Deletes the authentication credentials associated with the specified user. This endpoint is called when a user is deleted to ensure that their authentication data is also removed. Access is restricted to internal requests using an internal JWT.",
+    responses(
+        (status = 200, description = "User credentials were successfully deleted.", body = DocSuccessApiResponse<Auth>),
+        (status = 401, description = "Error: Unauthorized", body = DocErrorApiResponse),
+        (status = 500, description = "An error occurred during the deletion of user credentials.", body = DocErrorApiResponse)
+    ),
+    params(
+        ("user_id" = String, Path, description = "The ID of the user whose credentials should be deleted")
+    )
+)]
+#[delete("/{user_id}")]
+async fn delete_auth_by_user_id(
+    db: Data<Database>,
+    user_id: Path<String>,
+    req: HttpRequest,
+) -> impl Responder {
+    match authenticate_internal_request(&req) {
+        Ok(jwt_payload) => jwt_payload,
+        Err(err_res) => return err_res,
+    };
+
+    let user_id = user_id.into_inner();
+
+    match service::delete_auth_by_user_id(&db, user_id).await {
+        Ok(auths) => {
+            let response: ApiResponse<Auth> =
+                ApiResponse::success("User credential were successfully deleted.", Some(auths));
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            let response: ApiResponse<()> = ApiResponse::error(
+                "An error occured during the delete of user credentials.",
+                e.to_string(),
+            );
+            HttpResponse::InternalServerError().json(response)
         }
     }
 }

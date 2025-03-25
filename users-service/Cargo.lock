@@ -2914,6 +2914,7 @@ dependencies = [
  "dotenv",
  "futures-util",
  "mongodb",
+ "reqwest",
  "serde",
  "serde_json",
  "utoipa",

@@ -3,7 +3,8 @@ use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder};
 use utoipa::{Modify, OpenApi, openapi::security::SecurityScheme};
 
 use crate::controller::{
-    __path_get_auths, __path_get_me, __path_health_check, __path_login, __path_register,
+    __path_delete_auth_by_user_id, __path_get_auths, __path_get_me, __path_health_check,
+    __path_login, __path_register,
 };
 use crate::model::{Auth, CreateAuthRequest, LoginRequest, LoginResponse};
 use common::models::AuthRole;
@@ -25,6 +26,7 @@ and internal endpoints for the management of credentials.
         health_check,
         get_auths,
         get_me,
+        delete_auth_by_user_id,
         register,
         login
     ),

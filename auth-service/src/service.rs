@@ -36,6 +36,24 @@ pub async fn get_auths(db: &Database) -> Result<Vec<Auth>, Box<dyn std::error::E
 
 // =============================================================================================================================
 
+pub async fn delete_auth_by_user_id(
+    db: &Database,
+    user_id: String,
+) -> Result<Auth, Box<dyn std::error::Error>> {
+    let user_id = ObjectId::parse_str(&user_id)?;
+    let collection: Collection<Auth> = db.collection(COLLECTION_NAME);
+
+    match collection
+        .find_one_and_delete(doc! {"user_id": user_id})
+        .await?
+    {
+        Some(auth) => Ok(auth),
+        None => Err("No auth found with the given user_id".into()),
+    }
+}
+
+// =============================================================================================================================
+
 pub async fn register(
     db: &Database,
     payload: CreateAuthRequest,

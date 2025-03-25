@@ -1,22 +1,39 @@
 services:
-  load-balancer:
-      image: nginx:latest
-      container_name: load-balancer
-      ports:
-        - "8080:80" 
-      volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      depends_on: 
-        - auth-service
-        - users-service
-        - events-service
-        - tickets-service
-        - notifications-service
-        - payments-service
-        - backups-service
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"        
+      - "8080:8080"    
+    command:
+      - "--api.insecure=true"            
+      - "--providers.docker=true"      
+      - "--entrypoints.web.address=:80"  
+      - "--ping=true"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"     
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"               
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
   database:
     image: mongo:latest
     container_name: database
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
@@ -40,6 +57,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_AUTH_SERVICE: ${DATABASE_URL_AUTH_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.services.auth.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/auth/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   users-service:
     build:
@@ -56,6 +84,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_USERS_SERVICE: ${DATABASE_URL_USERS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.users.rule=PathPrefix(`/api/users`)"
+      - "traefik.http.routers.users.entrypoints=web"
+      - "traefik.http.services.users.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/users/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   events-service:
     build:
@@ -72,6 +111,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_EVENTS_SERVICE: ${DATABASE_URL_EVENTS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.events.rule=PathPrefix(`/api/events`)"
+      - "traefik.http.routers.events.entrypoints=web"
+      - "traefik.http.services.events.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/events/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   tickets-service:
     build:
@@ -88,6 +138,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_TICKETS_SERVICE: ${DATABASE_URL_TICKETS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tickets.rule=PathPrefix(`/api/tickets`)"
+      - "traefik.http.routers.tickets.entrypoints=web"
+      - "traefik.http.services.tickets.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/tickets/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   notifications-service:
     build:
@@ -107,6 +168,17 @@ services:
       MAIL_HOSTNAME: ${MAIL_HOSTNAME}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.notifications.rule=PathPrefix(`/api/notifications`)"
+      - "traefik.http.routers.notifications.entrypoints=web"
+      - "traefik.http.services.notifications.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/notifications/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   payments-service:
     build:
@@ -123,6 +195,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_PAYMENTS_SERVICE: ${DATABASE_URL_PAYMENTS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payments.rule=PathPrefix(`/api/payments`)"
+      - "traefik.http.routers.payments.entrypoints=web"
+      - "traefik.http.services.payments.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/payments/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   backups-service:
     build:
@@ -139,7 +222,17 @@ services:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
       DATABASE_URL_BACKUPS_SERVICE: ${DATABASE_URL_BACKUPS_SERVICE}
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backups.rule=PathPrefix(`/api/backups`)"
+      - "traefik.http.routers.backups.entrypoints=web"
+      - "traefik.http.services.backups.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/backups/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   auth-target-volume:

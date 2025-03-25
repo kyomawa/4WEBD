@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use common::{jwt::internal::encode_internal_jwt, utils::api_response::ApiResponse};
 use futures_util::TryStreamExt;
 use mongodb::{
     Collection, Cursor, Database,
@@ -102,8 +103,33 @@ pub async fn delete_user(db: &Database, id: String) -> Result<User, Box<dyn std:
     let id = ObjectId::from_str(&id)?;
     let collection: Collection<User> = db.collection(COLLECTION_NAME);
     match collection.find_one_and_delete(doc! { "_id": id }).await? {
-        Some(user) => Ok(user),
+        Some(user) => {
+            delete_auth_by_user_id(user.id.unwrap()).await?;
+            Ok(user)
+        }
         None => Err("No user found with the given id".into()),
+    }
+}
+
+// =============================================================================================================================
+
+async fn delete_auth_by_user_id(user_id: ObjectId) -> Result<(), Box<dyn std::error::Error>> {
+    let user_id = user_id.to_hex();
+
+    let client = reqwest::Client::new();
+    let internal_token = encode_internal_jwt()?;
+
+    let res = client
+        .delete(format!("http://auth-service:8080/api/auth/{}", user_id))
+        .header("Authorization", format!("Bearer {}", internal_token))
+        .send()
+        .await?
+        .json::<ApiResponse<serde_json::Value>>()
+        .await?;
+
+    match res {
+        ApiResponse::Success { .. } => Ok(()),
+        ApiResponse::Error { error, .. } => Err(error.into()),
     }
 }
 
