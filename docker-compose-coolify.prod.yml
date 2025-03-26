@@ -1,0 +1,226 @@
+networks:
+  4webd_network_coolify_prod:
+    driver: bridge
+services:
+  traefik:
+    image: traefik:v3.1
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_TRAEFIK}:80"
+      - "${HOST_PORT_TRAEFIK_DASHBOARD}:8080"
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.http.address=:80"
+      - "--ping=true"
+      - "--ping.entrypoint=http"
+      - "--api.dashboard=true"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${DASHBOARD_USER}:${DASHBOARD_PASSWORD_HASH}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - 4webd_network_coolify_prod
+
+  database:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT_MONGODB}:27017"
+    volumes:
+      - ./mongo-init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+    networks:
+      - 4webd_network_coolify_prod
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: auth-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/auth/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_AUTH_SERVICE: ${DATABASE_URL_AUTH_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/api/auth`)"
+      - "traefik.http.routers.auth.entrypoints=http"
+      - "traefik.http.services.auth.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  users-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: users-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/users/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_USERS_SERVICE: ${DATABASE_URL_USERS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.users.rule=PathPrefix(`/api/users`)"
+      - "traefik.http.routers.users.entrypoints=http"
+      - "traefik.http.services.users.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  events-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: events-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/events/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_EVENTS_SERVICE: ${DATABASE_URL_EVENTS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.events.rule=PathPrefix(`/api/events`)"
+      - "traefik.http.routers.events.entrypoints=http"
+      - "traefik.http.services.events.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  tickets-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: tickets-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/tickets/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_TICKETS_SERVICE: ${DATABASE_URL_TICKETS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tickets.rule=PathPrefix(`/api/tickets`)"
+      - "traefik.http.routers.tickets.entrypoints=http"
+      - "traefik.http.services.tickets.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: notifications-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/notifications/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_NOTIFICATIONS_SERVICE: ${DATABASE_URL_NOTIFICATIONS_SERVICE}
+      MAIL_HOSTNAME: ${MAIL_HOSTNAME}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.notifications.rule=PathPrefix(`/api/notifications`)"
+      - "traefik.http.routers.notifications.entrypoints=http"
+      - "traefik.http.services.notifications.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  payments-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: payments-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/payments/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_PAYMENTS_SERVICE: ${DATABASE_URL_PAYMENTS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payments.rule=PathPrefix(`/api/payments`)"
+      - "traefik.http.routers.payments.entrypoints=http"
+      - "traefik.http.services.payments.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
+
+  backups-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace.prod
+      target: backups-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/backups/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    environment:
+      JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
+      JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
+      DATABASE_URL_BACKUPS_SERVICE: ${DATABASE_URL_BACKUPS_SERVICE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backups.rule=PathPrefix(`/api/backups`)"
+      - "traefik.http.routers.backups.entrypoints=http"
+      - "traefik.http.services.backups.loadbalancer.server.port=8080"
+    networks:
+      - 4webd_network_coolify_prod
