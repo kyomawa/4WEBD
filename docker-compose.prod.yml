@@ -8,8 +8,8 @@ services:
     image: traefik:v3.1
     restart: unless-stopped
     ports:
-      - "80:80"      
-      - "8080:8080"
+      - "${HOST_PORT_TRAEFIK}:80"
+      - "${HOST_PORT_TRAEFIK_DASHBOARD}:8080"
     command: 
       - "--providers.docker=true"          
       - "--entrypoints.http.address=:80"
@@ -30,7 +30,7 @@ services:
     - "traefik.http.routers.traefik.middlewares=traefik-auth"
     - "traefik.http.middlewares.traefik-auth.basicauth.users=${DASHBOARD_USER}:${DASHBOARD_PASSWORD_HASH}"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ping || exit 1"]
+      test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -42,7 +42,7 @@ services:
     image: mongo:latest
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "${HOST_PORT_MONGODB}:27017"
     volumes:
       - ./mongo-init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
