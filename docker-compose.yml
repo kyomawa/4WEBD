@@ -25,8 +25,8 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 10
+      start_period: 25s
     networks:
       - 4webd_network_dev
 
@@ -36,8 +36,8 @@ services:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 10
+      start_period: 25s
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
@@ -56,7 +56,7 @@ services:
     volumes:
       - ./auth-service:/usr/src/app/auth-service
       - ./common:/usr/src/app/common
-      - auth-target-volume:/usr/src/app/auth-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -73,7 +73,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -85,7 +85,7 @@ services:
     volumes:
       - ./users-service:/usr/src/app/users-service
       - ./common:/usr/src/app/common
-      - users-target-volume:/usr/src/app/users-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -102,7 +102,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -114,7 +114,7 @@ services:
     volumes:
       - ./events-service:/usr/src/app/events-service
       - ./common:/usr/src/app/common
-      - events-target-volume:/usr/src/app/events-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -131,7 +131,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -143,7 +143,7 @@ services:
     volumes:
       - ./tickets-service:/usr/src/app/tickets-service
       - ./common:/usr/src/app/common
-      - tickets-target-volume:/usr/src/app/tickets-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -160,7 +160,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -172,7 +172,7 @@ services:
     volumes:
       - ./notifications-service:/usr/src/app/notifications-service
       - ./common:/usr/src/app/common
-      - notifications-target-volume:/usr/src/app/notifications-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -192,7 +192,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -204,7 +204,7 @@ services:
     volumes:
       - ./payments-service:/usr/src/app/payments-service
       - ./common:/usr/src/app/common
-      - payments-target-volume:/usr/src/app/payments-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -221,7 +221,7 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
@@ -233,7 +233,7 @@ services:
     volumes:
       - ./backups-service:/usr/src/app/backups-service
       - ./common:/usr/src/app/common
-      - backups-target-volume:/usr/src/app/backups-service/target
+      - target-volume:/usr/src/app/target
     depends_on:
       - database
     environment:
@@ -250,15 +250,9 @@ services:
       interval: 12s
       timeout: 7s
       retries: 20
-      start_period: 135s
+      start_period: 240s
     networks:
       - 4webd_network_dev
 
 volumes:
-  auth-target-volume:
-  users-target-volume:
-  events-target-volume:
-  tickets-target-volume:
-  notifications-target-volume:
-  payments-target-volume:
-  backups-target-volume:
+  target-volume:

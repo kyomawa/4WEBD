@@ -6,7 +6,9 @@ RUN cargo install cargo-watch \
     && apt-get update \
     && apt-get install -y pkg-config libssl-dev curl \
     && rm -rf /var/lib/apt/lists/*
-    
+
+ENV CARGO_TARGET_DIR=/usr/src/app/target
+
 FROM dev-base AS auth-service
 WORKDIR /usr/src/app/auth-service
 EXPOSE 8080
