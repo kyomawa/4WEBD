@@ -1,6 +1,5 @@
-name: 4webd_network
 networks:
-  4webd_network:
+  4webd_network_dev:
     driver: bridge
 services:
   traefik:
@@ -29,7 +28,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   database:
     image: mongo:latest
@@ -47,7 +46,7 @@ services:
     volumes:
       - ./mongo-init-scripts:/docker-entrypoint-initdb.d
     networks:
-    - 4webd_network
+    - 4webd_network_dev
 
   auth-service:
     build:
@@ -75,7 +74,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   users-service:
     build:
@@ -103,7 +102,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   events-service:
     build:
@@ -131,7 +130,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   tickets-service:
     build:
@@ -159,7 +158,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   notifications-service:
     build:
@@ -190,7 +189,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   payments-service:
     build:
@@ -218,7 +217,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
   backups-service:
     build:
@@ -246,7 +245,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_dev
 
 volumes:
   auth-target-volume:

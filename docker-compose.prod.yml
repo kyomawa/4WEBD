@@ -1,7 +1,6 @@
 
-name: 4webd_network
 networks:
-  4webd_network:
+  4webd_network_prod:
     driver: bridge
 services:
   traefik:
@@ -36,7 +35,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   database:
     image: mongo:latest
@@ -55,7 +54,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   auth-service:
     build:
@@ -78,7 +77,7 @@ services:
       - "traefik.http.routers.auth.entrypoints=http"
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   users-service:
     build:
@@ -101,7 +100,7 @@ services:
       - "traefik.http.routers.users.entrypoints=http"
       - "traefik.http.services.users.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   events-service:
     build:
@@ -124,7 +123,7 @@ services:
       - "traefik.http.routers.events.entrypoints=http"
       - "traefik.http.services.events.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   tickets-service:
     build:
@@ -147,7 +146,7 @@ services:
       - "traefik.http.routers.tickets.entrypoints=http"
       - "traefik.http.services.tickets.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   notifications-service:
     build:
@@ -173,7 +172,7 @@ services:
       - "traefik.http.routers.notifications.entrypoints=http"
       - "traefik.http.services.notifications.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   payments-service:
     build:
@@ -196,7 +195,7 @@ services:
       - "traefik.http.routers.payments.entrypoints=http"
       - "traefik.http.services.payments.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
 
   backups-service:
     build:
@@ -219,4 +218,4 @@ services:
       - "traefik.http.routers.backups.entrypoints=http"
       - "traefik.http.services.backups.loadbalancer.server.port=8080"
     networks:
-      - 4webd_network
+      - 4webd_network_prod
