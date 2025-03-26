@@ -25,8 +25,8 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - 4webd_network_dev
 
@@ -36,8 +36,8 @@ services:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 15s
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
@@ -50,8 +50,9 @@ services:
 
   auth-service:
     build:
-      context: ./auth-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: auth-service
     volumes:
       - ./auth-service:/usr/src/app/auth-service
       - ./common:/usr/src/app/common
@@ -69,17 +70,18 @@ services:
       - "traefik.http.services.auth.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/auth/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   users-service:
     build:
-      context: ./users-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: users-service
     volumes:
       - ./users-service:/usr/src/app/users-service
       - ./common:/usr/src/app/common
@@ -97,17 +99,18 @@ services:
       - "traefik.http.services.users.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/users/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   events-service:
     build:
-      context: ./events-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: events-service
     volumes:
       - ./events-service:/usr/src/app/events-service
       - ./common:/usr/src/app/common
@@ -125,17 +128,18 @@ services:
       - "traefik.http.services.events.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/events/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   tickets-service:
     build:
-      context: ./tickets-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: tickets-service
     volumes:
       - ./tickets-service:/usr/src/app/tickets-service
       - ./common:/usr/src/app/common
@@ -153,17 +157,18 @@ services:
       - "traefik.http.services.tickets.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/tickets/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   notifications-service:
     build:
-      context: ./notifications-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: notifications-service
     volumes:
       - ./notifications-service:/usr/src/app/notifications-service
       - ./common:/usr/src/app/common
@@ -184,17 +189,18 @@ services:
       - "traefik.http.services.notifications.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/notifications/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   payments-service:
     build:
-      context: ./payments-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: payments-service
     volumes:
       - ./payments-service:/usr/src/app/payments-service
       - ./common:/usr/src/app/common
@@ -212,17 +218,18 @@ services:
       - "traefik.http.services.payments.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/payments/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 
   backups-service:
     build:
-      context: ./backups-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.workspace.dev
+      target: backups-service
     volumes:
       - ./backups-service:/usr/src/app/backups-service
       - ./common:/usr/src/app/common
@@ -240,10 +247,10 @@ services:
       - "traefik.http.services.backups.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/backups/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      interval: 12s
+      timeout: 7s
+      retries: 20
+      start_period: 135s
     networks:
       - 4webd_network_dev
 

@@ -32,8 +32,8 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - 4webd_network_prod
 
@@ -48,8 +48,8 @@ services:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 5
+      start_period: 10s
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DATABASE_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
@@ -59,14 +59,15 @@ services:
   auth-service:
     build:
       context: .
-      dockerfile: auth-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: auth-service 
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/auth/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -82,14 +83,15 @@ services:
   users-service:
     build:
       context: .
-      dockerfile: users-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: users-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/users/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -105,14 +107,15 @@ services:
   events-service:
     build:
       context: .
-      dockerfile: events-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: events-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/events/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -128,14 +131,15 @@ services:
   tickets-service:
     build:
       context: .
-      dockerfile: tickets-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: tickets-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/tickets/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -151,14 +155,15 @@ services:
   notifications-service:
     build:
       context: .
-      dockerfile: notifications-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: notifications-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/notifications/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -177,14 +182,15 @@ services:
   payments-service:
     build:
       context: .
-      dockerfile: payments-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: payments-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/payments/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}
@@ -200,14 +206,15 @@ services:
   backups-service:
     build:
       context: .
-      dockerfile: backups-service/Dockerfile.prod
+      dockerfile: Dockerfile.workspace.prod
+      target: backups-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/backups/health"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 10
+      start_period: 20s
     environment:
       JWT_INTERNAL_SIGNATURE: ${JWT_INTERNAL_SIGNATURE}
       JWT_EXTERNAL_SIGNATURE: ${JWT_EXTERNAL_SIGNATURE}

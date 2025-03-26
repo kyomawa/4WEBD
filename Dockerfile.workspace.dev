@@ -1,0 +1,43 @@
+FROM rust:1.85.0-slim-bullseye AS dev-base
+
+WORKDIR /usr/src/app
+
+RUN cargo install cargo-watch \
+    && apt-get update \
+    && apt-get install -y pkg-config libssl-dev curl \
+    && rm -rf /var/lib/apt/lists/*
+    
+FROM dev-base AS auth-service
+WORKDIR /usr/src/app/auth-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS users-service
+WORKDIR /usr/src/app/users-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS tickets-service
+WORKDIR /usr/src/app/tickets-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS payments-service
+WORKDIR /usr/src/app/payments-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS events-service
+WORKDIR /usr/src/app/events-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS notifications-service
+WORKDIR /usr/src/app/notifications-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]
+
+FROM dev-base AS backups-service
+WORKDIR /usr/src/app/backups-service
+EXPOSE 8080
+CMD ["cargo", "watch", "--poll", "-i", "1", "-x", "run"]

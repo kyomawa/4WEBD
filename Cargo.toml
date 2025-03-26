@@ -1,0 +1,12 @@
+[workspace]
+members = [
+  "common",
+  "auth-service",
+  "users-service",
+  "tickets-service",
+  "payments-service",
+  "events-service",
+  "notifications-service",
+  "backups-service"
+]
+resolver = "3"

@@ -1,0 +1,58 @@
+FROM rust:1.85.0-slim-bullseye AS builder
+
+WORKDIR /usr/src/app
+
+RUN apt-get update && apt-get install -y pkg-config libssl-dev curl && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+
+RUN cargo build --workspace --release
+
+FROM debian:bullseye-slim AS auth-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/auth-service /usr/local/bin/
+EXPOSE 8080
+CMD ["auth-service"]
+
+FROM debian:bullseye-slim AS users-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/users-service /usr/local/bin/
+EXPOSE 8080
+CMD ["users-service"]
+
+FROM debian:bullseye-slim AS tickets-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/tickets-service /usr/local/bin/
+EXPOSE 8080
+CMD ["tickets-service"]
+
+FROM debian:bullseye-slim AS payments-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/payments-service /usr/local/bin/
+EXPOSE 8080
+CMD ["payments-service"]
+
+FROM debian:bullseye-slim AS events-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/events-service /usr/local/bin/
+EXPOSE 8080
+CMD ["events-service"]
+
+FROM debian:bullseye-slim AS notifications-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/notifications-service /usr/local/bin/
+EXPOSE 8080
+CMD ["notifications-service"]
+
+FROM debian:bullseye-slim AS backups-service
+WORKDIR /usr/local/bin
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/src/app/target/release/backups-service /usr/local/bin/
+EXPOSE 8080
+CMD ["backups-service"]
