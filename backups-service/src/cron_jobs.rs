@@ -11,7 +11,7 @@ pub async fn cron_jobs(db: Database) {
     let db_for_trigger = db.clone();
 
     let every_90_seconds: std::pin::Pin<Box<dyn Future<Output = ()> + Send>> =
-        every(20).seconds().perform(move || {
+        every(90).seconds().perform(move || {
             let local_db = db_for_backup.clone();
             async move {
                 println!("Running cron job: Backup all Services");
@@ -23,7 +23,7 @@ pub async fn cron_jobs(db: Database) {
     spawn(every_90_seconds);
 
     let every_10_minutes: std::pin::Pin<Box<dyn Future<Output = ()> + Send>> =
-        every(10).seconds().perform(move || {
+        every(10).minutes().perform(move || {
             let local_db = db_for_trigger.clone();
             async move {
                 println!("Running cron job: Trigger Backup for all Services");
