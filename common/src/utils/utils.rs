@@ -1,13 +1,12 @@
-use chrono::Utc;
 use mongodb::bson::serde_helpers::serialize_object_id_as_hex_string;
 use mongodb::bson::{DateTime, oid::ObjectId};
 use once_cell::sync::Lazy;
 use regex::Regex;
-use serde::de::{self, Deserializer, Visitor};
+use serde::de::{self, Deserializer, MapAccess, Visitor};
+use serde::ser::Error as SerError;
 use serde::{self, Deserialize, Serializer};
 use serde_json::json;
 use std::fmt;
-use std::time::{Duration, UNIX_EPOCH};
 use validator::ValidationError;
 
 use crate::jwt::internal::encode_internal_jwt;
@@ -77,7 +76,7 @@ where
         type Value = DateTime;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a BSON DateTime or an ISO8601 string")
+            formatter.write_str("a BSON DateTime, an ISO8601 string, or a map with $date")
         }
 
         fn visit_str<E>(self, value: &str) -> Result<DateTime, E>
@@ -85,9 +84,8 @@ where
             E: de::Error,
         {
             let chrono_dt = chrono::DateTime::parse_from_rfc3339(value).map_err(E::custom)?;
-            let ts = chrono_dt.with_timezone(&Utc).timestamp_millis();
-            let system_time = UNIX_EPOCH + Duration::from_millis(ts as u64);
-            Ok(DateTime::from_system_time(system_time))
+            let ts = chrono_dt.with_timezone(&chrono::Utc).timestamp_millis();
+            Ok(DateTime::from_millis(ts))
         }
 
         fn visit_i64<E>(self, value: i64) -> Result<DateTime, E>
@@ -95,6 +93,41 @@ where
             E: de::Error,
         {
             Ok(DateTime::from_millis(value))
+        }
+
+        fn visit_map<M>(self, mut map: M) -> Result<DateTime, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let key: Option<String> = map.next_key()?;
+            if let Some(key) = key {
+                if key == "$date" {
+                    let value: serde_json::Value = map.next_value()?;
+                    if let Some(s) = value.as_str() {
+                        let chrono_dt =
+                            chrono::DateTime::parse_from_rfc3339(s).map_err(de::Error::custom)?;
+                        let ts = chrono_dt.with_timezone(&chrono::Utc).timestamp_millis();
+                        return Ok(DateTime::from_millis(ts));
+                    } else if let Some(n) = value.as_i64() {
+                        return Ok(DateTime::from_millis(n));
+                    } else if let Some(obj) = value.as_object() {
+                        if let Some(number_long) = obj.get("$numberLong") {
+                            if let Some(s) = number_long.as_str() {
+                                let n = s.parse::<i64>().map_err(de::Error::custom)?;
+                                return Ok(DateTime::from_millis(n));
+                            } else if let Some(n) = number_long.as_i64() {
+                                return Ok(DateTime::from_millis(n));
+                            }
+                        }
+                        return Err(de::Error::custom("unexpected type for nested $date value"));
+                    } else {
+                        return Err(de::Error::custom("unexpected type for $date value"));
+                    }
+                } else {
+                    return Err(de::Error::custom("expected key \"$date\""));
+                }
+            }
+            Err(de::Error::custom("expected a map with \"$date\""))
         }
     }
 
@@ -139,25 +172,16 @@ where
             deserialize_datetime_from_any(deserializer).map(Some)
         }
 
-        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        fn visit_map<M>(self, map: M) -> Result<Self::Value, M::Error>
         where
-            E: de::Error,
+            M: de::MapAccess<'de>,
         {
-            let chrono_dt = chrono::DateTime::parse_from_rfc3339(value).map_err(E::custom)?;
-            let ts = chrono_dt.with_timezone(&Utc).timestamp_millis();
-            let system_time = UNIX_EPOCH + Duration::from_millis(ts as u64);
-            Ok(Some(DateTime::from_system_time(system_time)))
-        }
-
-        fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Some(DateTime::from_millis(value)))
+            let dt = deserialize_datetime_from_any(de::value::MapAccessDeserializer::new(map))?;
+            Ok(Some(dt))
         }
     }
 
-    deserializer.deserialize_any(OptionDateTimeVisitor)
+    deserializer.deserialize_option(OptionDateTimeVisitor)
 }
 
 // =============================================================================================================================
@@ -176,6 +200,19 @@ where
         }
         None => serializer.serialize_none(),
     }
+}
+
+// =============================================================================================================================
+
+pub fn serialize_datetime_as_rfc3339_string<S>(
+    date: &DateTime,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let s = date.try_to_rfc3339_string().map_err(SerError::custom)?;
+    serializer.serialize_str(&s)
 }
 
 // =============================================================================================================================

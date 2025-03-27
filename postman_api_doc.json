@@ -1,0 +1,1227 @@
+{
+	"info": {
+		"_postman_id": "7a184df3-a16a-4418-8563-f5f4fa5afe07",
+		"name": "4WEBD",
+		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Scripts\" tab**\n\nAdding tests to your requests can help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/fa30ea0a-373d-4545-a668-e7b283cca343/aW1hZ2UucG5n\" alt=\"\" height=\"1530\" width=\"2162\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n    \n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37298111"
+	},
+	"item": [
+		{
+			"name": "users-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/67d88106c3f7903ba0f9211a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"67d88106c3f7903ba0f9211a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Id by Email",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"bryan.cellier.pro@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/id-by-email",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"id-by-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create an User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"jean\",\r\n    \"last_name\": \"hughues\",\r\n    \"email\": \"jean.hughues@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Me",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/67e2d38efb4c929d8a160b13",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"67e2d38efb4c929d8a160b13"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an User by Id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/67e2d38efb4c929d8a160b13",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"67e2d38efb4c929d8a160b13"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Auths",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Jwt Payload",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register a new user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"quentin\",\r\n    \"last_name\": \"hughues\",\r\n    \"email\": \"quentin.hughues@gmail.com\",\r\n    \"password\": \"UnMotDePasseVreumeeent2*\",\r\n    \"confirm_password\": \"UnMotDePasseVreumeeent2*\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"quentin.hughues@gmail.com\",\r\n    \"password\": \"UnMotDePasseVreumeeent2*\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Auth by user id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/67e2f1ba1e3f2135460169a4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"67e2f1ba1e3f2135460169a4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "events-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/events/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/events/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/events",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/events/67db2b76a2fd436246633e13",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"67db2b76a2fd436246633e13"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create new Event",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "  {\r\n    \"title\": \"Big Fiest 2025\",\r\n    \"description\": \"A strong rave party for drugs dealers & hoes.\",\r\n    \"date\": \"2025-05-15T09:00:00Z\",\r\n    \"location\": \"Paris\",\r\n    \"capacity\": 200,\r\n    \"price\": 50\r\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/events",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Event by id",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "  {\r\n    \"title\": \"Big Fiesta 2025\",\r\n    \"description\": \"A strong rave party for drugs dealers & hoes.\",\r\n    \"date\": \"2025-05-15T09:00:00Z\",\r\n    \"location\": \"Paris\",\r\n    \"remaining_seats\": 200,\r\n    \"capacity\": 200,\r\n    \"price\": 50\r\n  }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/events/67dd8c4f10e335012285797c",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"67dd8c4f10e335012285797c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Seats by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"delta\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/events/67db0917162248764a68d8a1/update-seats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"67db0917162248764a68d8a1",
+								"update-seats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Event by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/events/67db2a7e53bcb9981835dd07",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"events",
+								"67db2a7e53bcb9981835dd07"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tickets-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Tickets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ticket by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/67db2b9ce56be1a7f7200dd1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67db2b9ce56be1a7f7200dd1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Ticket",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"card_number\": \"120156526352326230\",\r\n    \"expiration_date\": \"2027-05-15T09:00:00Z\",\r\n    \"cvv\": \"373\",\r\n    \"card_holder\": \"Bryan Cellier\",\r\n    \"currency\": \"Eur\",\r\n    \"seat_number\": 45,\r\n    \"event_id\": \"67e5159f64475583891ce615\",\r\n    \"user_id\": \"67d88106c3f7903ba0f9211a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tickets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Ticket Seat Number by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"seat_number\": 88\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tickets/67dd892115f6c2d30c64a7a8/seat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67dd892115f6c2d30c64a7a8",
+								"seat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Active a Ticket by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/67dfde43fd762d4a41bead9b/active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67dfde43fd762d4a41bead9b",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel a Ticket by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/67db2b9ce56be1a7f7200dd1/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67db2b9ce56be1a7f7200dd1",
+								"cancel"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refund a Ticket by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/67dd892115f6c2d30c64a7a8/refund",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67dd892115f6c2d30c64a7a8",
+								"refund"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Ticket by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tickets/67dfdf71fd762d4a41bead9f",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tickets",
+								"67dfdf71fd762d4a41bead9f"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "notifications-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notifications/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notifications/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notifications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notifications/67dd17a668a5d613e4261ce4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications",
+								"67dd17a668a5d613e4261ce4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"67d88106c3f7903ba0f9211a\",\r\n    \"message\": \"Welcome to 4webd.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/notifications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Notifcation Status by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"Pending\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/notifications/67dd17a668a5d613e4261ce4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications",
+								"67dd17a668a5d613e4261ce4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Notification by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/notifications/67dfdf74b778f873f804271a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"notifications",
+								"67dfdf74b778f873f804271a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "payments-service",
+			"item": [
+				{
+					"name": "Health check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Payments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments/67df020985fcf1280f965730",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments",
+								"67df020985fcf1280f965730"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create new Payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"amount\": 50,\r\n    \"currency\": \"Eur\",\r\n    \"user_id\": \"67d88106c3f7903ba0f9211a\",\r\n    \"event_id\": \"67da941412d5bd6dbc358950\",\r\n    \"ticket_id\": \"67df01b2627b5a0d242e8899\",\r\n    \"card_number\": \"120156526352326230\",\r\n    \"expiration_date\": \"2027-05-15T09:00:00Z\",\r\n    \"cvv\": \"373\",\r\n    \"card_holder\": \"Bryan Cellier\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Payment Status by id",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"Pending\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payments/67df020985fcf1280f965730",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments",
+								"67df020985fcf1280f965730"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Payment by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payments/67df02617de10901473ac4f2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payments",
+								"67df02617de10901473ac4f2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "backups-service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/backups/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Doc",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/backups/doc/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups",
+								"doc",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a Backup by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/backups/67e5155cf119c64bf223eafb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups",
+								"67e5155cf119c64bf223eafb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get last Backup by Service Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/backups/Events/last",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups",
+								"Events",
+								"last"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a new Backup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"service_name\": \"Events\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/backups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Backup by id",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/backups/67e06c612d72e8d43ccf1a25",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"backups",
+								"67e06c612d72e8d43ccf1a25"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbnRlcm5hbCI6dHJ1ZSwiZXhwIjo2MTc0NDY1ODE2OH0.sqThveBNkFLl8aHtAoZEYK1FcWdz1YLC0ZgMWb8NtCw",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:80/api"
+		}
+	]
+}

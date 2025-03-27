@@ -299,6 +299,9 @@ For further details and collaborative discussions, please refer to the external 
     
     https://www.figma.com/board/9xhEBDfFMlQnbiUsrNOPNs/4WEBD?node-id=1-3003&t=ViKz7soe83BnP5Nt-1
 
+### **Note**: 
+If you'd prefer not to browse each service's Swagger documentation individually, there is a file named `postman_api_doc.json` located at the root of the project. You can import this file into `Postman` to access the complete API documentation for all services. The Postman collection includes a `pre-configured internal token` that is considered as an admin user, `allowing you to test all endpoints` without any additional setup.
+
 ---
 
 ## Credits
@@ -307,5 +310,3 @@ Project realised by :
 
 - [kyomawa](https://github.com/kyomawa)
 - [lyeschougar](https://github.com/lyeschougar)
-
----

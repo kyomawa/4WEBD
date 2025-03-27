@@ -2,9 +2,7 @@ use common::utils::utils::{
     deserialize_datetime_from_any, deserialize_option_datetime_from_any,
     serialize_option_datetime_as_rfc3339_string, serialize_option_object_id_as_hex_string,
 };
-use mongodb::bson::{
-    DateTime, oid::ObjectId, serde_helpers::serialize_bson_datetime_as_rfc3339_string,
-};
+use mongodb::bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -43,10 +41,7 @@ pub struct Backup {
     #[schema(example = "63f7b1c0a1234567890abcdef", value_type = String)]
     pub id: Option<ObjectId>,
 
-    #[serde(
-        deserialize_with = "deserialize_datetime_from_any",
-        serialize_with = "serialize_bson_datetime_as_rfc3339_string"
-    )]
+    #[serde(deserialize_with = "deserialize_datetime_from_any")]
     #[schema(example = "2025-03-23T08:37:10.975Z", value_type = String)]
     pub created_at: DateTime,
 
